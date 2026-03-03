@@ -8,13 +8,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.1.3/satellite.min.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{width:100%;height:100%;background:#050914;overflow:hidden;color:#fff;font-family:monospace;}
+  html,body{width:100%;height:100%;background:linear-gradient(to bottom, #02040a 0%, #060913 100%);overflow:hidden;color:#fff;font-family:monospace;}
   #stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
   #globe-mount{width:100%;height:100%;cursor:grab;}
   #globe-mount:active{cursor:grabbing;}
   button{font-family:monospace;outline:none;cursor:pointer;}
   ::-webkit-scrollbar{width:5px; height:5px;} 
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.3);border-radius:3px;}
+  ::-webkit-scrollbar-thumb{background:rgba(56, 189, 248, 0.3);border-radius:3px;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
   @keyframes highlight{0%{transform:scale(0.98);box-shadow:0 0 0 transparent}50%{transform:scale(1.02);box-shadow:0 0 25px var(--accent-50)}100%{transform:scale(1);box-shadow:0 0 0 transparent}}
   @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -22,7 +22,7 @@
   
   /* Boot Sequence */
   #boot-sequence {
-    position: fixed; inset: 0; z-index: 9999; background: #010306; color: #4ADE80;
+    position: fixed; inset: 0; z-index: 9999; background: #010205; color: #4ADE80;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     font-family: monospace; transition: opacity 0.5s ease;
   }
@@ -41,21 +41,23 @@
   #app { height:100vh; display:flex; flex-direction:column; overflow:hidden; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
   
   #panels-area {
-    flex:1; min-height:0; display:flex; gap:14px; padding:10px 24px 20px; 
+    flex:1; min-height:0; display:flex; gap:16px; padding:10px 24px 20px; 
     overflow:visible; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .panel {
-    background:rgba(20, 28, 44, 0.95); border:1px solid rgba(255,255,255,0.25); 
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 15, 28, 0.98) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.2); 
+    border-top: 2px solid rgba(56, 189, 248, 0.6);
     border-radius:12px; backdrop-filter:blur(24px); overflow:hidden; 
     display:flex; flex-direction:column; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    height: 100%; box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    height: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1);
   }
   
   .panel.minimized { 
     height: 42px !important; min-height: 42px !important;
-    width: 200px !important; opacity: 0.9; 
-    border-color: rgba(255,255,255,0.2); margin-top: auto; 
+    width: 200px !important; opacity: 0.8; 
+    border-color: rgba(56, 189, 248, 0.3); border-top-width: 1px; margin-top: auto; 
   }
   .panel.minimized .panel-content, .panel.minimized #agency-filters, .panel.minimized #cmd-tabs { 
     opacity: 0; transition: opacity 0.2s; pointer-events: none; display: none !important;
@@ -64,48 +66,46 @@
   .panel.minimized:hover {
     height: 480px !important; width: 320px !important; 
     opacity: 1; z-index: 50; box-shadow: 0 -15px 50px rgba(0,0,0,0.95); 
-    border-color: rgba(255,255,255,0.5);
+    border-top: 2px solid rgba(56, 189, 248, 0.8);
   }
   .panel.minimized:hover .panel-content, .panel.minimized:hover #agency-filters, .panel.minimized:hover #cmd-tabs { 
     opacity: 1; pointer-events: auto; display: flex !important; 
   }
-  .panel.minimized:hover .panel-hdr {
-    border-bottom: 1px solid var(--accent-50, rgba(255,255,255,0.6)); background: rgba(255,255,255,0.15);
-  }
 
   .panel-hdr {
-    padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.2); 
+    padding:14px 18px; border-bottom:1px solid rgba(56, 189, 248, 0.15); 
+    background: rgba(56, 189, 248, 0.05); color: #e0f2fe;
     font-size:11px; letter-spacing:4px; text-transform:uppercase; font-weight:800;
     display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; flex-shrink: 0;
   }
   
-  .min-toggle { cursor: pointer; color: rgba(255,255,255,0.8); font-size: 18px; padding: 0 6px; transition: color 0.2s; font-weight: bold;}
+  .min-toggle { cursor: pointer; color: rgba(56, 189, 248, 0.6); font-size: 18px; padding: 0 6px; transition: color 0.2s; font-weight: bold;}
   .min-toggle:hover { color: #fff; }
 
-  .pill{padding:8px 16px;font-size:12px;font-weight:700; letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;transition:all 0.15s;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);}
-  .pill.active{color:#fff; background:rgba(255,255,255,0.3);}
-  .pill:hover:not(.active){background:rgba(255,255,255,0.2); color:#fff;}
+  .pill{padding:8px 16px;font-size:12px;font-weight:700; letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;transition:all 0.15s;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);}
+  .pill.active{color:#fff; background:rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5);}
+  .pill:hover:not(.active){background:rgba(255,255,255,0.1); color:#fff;}
   
   .rocket-btn{text-align:left;padding:12px 14px;border-radius:8px;transition:all 0.2s;border:1px solid transparent;background:transparent;width:100%;position:relative;}
   .rocket-btn.active{border-color:var(--accent-50)!important;background:var(--accent-10)!important;}
-  .rocket-btn:hover:not(.active){background:rgba(255,255,255,0.15);}
+  .rocket-btn:hover:not(.active){background:rgba(255,255,255,0.08);}
   
-  .stat-card{padding:12px 14px;border-radius:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);}
-  .launch-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);}
+  .stat-card{padding:12px 14px;border-radius:8px;background:rgba(0,0,0,0.3);border:1px solid rgba(56, 189, 248, 0.15); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);}
+  .launch-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);}
   
   #launch-tooltip {
-    position: fixed; background: rgba(20, 28, 44, 0.98); border: 1px solid rgba(255, 255, 255, 0.5);
+    position: fixed; background: rgba(10, 15, 28, 0.98); border: 1px solid rgba(56, 189, 248, 0.6);
     padding: 14px 18px; border-radius: 8px; font-family: monospace; pointer-events: none;
     display: none; z-index: 100; backdrop-filter: blur(16px); box-shadow: 0 12px 40px rgba(0,0,0,0.9);
     transform: translate(15px, 15px);
   }
 
   .crew-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
-  .crew-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 16px 12px; text-align: center; }
+  .crew-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 16px 12px; text-align: center; }
   .crew-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; border: 2px solid var(--accent-50, #4A9EFF); }
 
-  .view-toggle { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.5); padding: 10px 18px; border-radius: 24px; transition: all 0.3s; cursor: pointer; color: #fff;}
-  .view-toggle:hover { background: rgba(255,255,255,0.25); border-color: #fff; }
+  .view-toggle { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); padding: 10px 18px; border-radius: 24px; transition: all 0.3s; cursor: pointer; color: #fff;}
+  .view-toggle:hover { background: rgba(255,255,255,0.15); border-color: #38BDF8; }
   .redacted { background: repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 10px, #333 10px, #333 20px); color: transparent !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; user-select: none;}
 </style>
 </head>
@@ -129,10 +129,10 @@
        <div style="font-size: 1.5vw; font-weight: bold; color: #ffaaaa; letter-spacing: 6px; margin-top: 15px; text-align:center;">ASSET PROXIMITY CRITICAL // AVOID DIRECT EXPOSURE</div>
     </div>
 
-    <div id="header" style="position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:20px 36px;background:linear-gradient(to bottom,rgba(1,3,6,0.98) 0%,transparent 100%); pointer-events: none;">
+    <div id="header" style="position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:20px 36px;background:linear-gradient(to bottom,rgba(2,4,10,0.98) 0%,transparent 100%); pointer-events: none;">
       <div style="display:flex;align-items:center;gap:14px; pointer-events: auto;">
-        <span id="logo-astro" style="font-size:28px;letter-spacing:6px;font-weight:900;">ASTRO</span>
-        <span style="font-size:28px;letter-spacing:6px;font-weight:900;color:rgba(255,255,255,0.4);">MISSION</span>
+        <span id="logo-astro" style="font-size:28px;letter-spacing:6px;font-weight:900; color:#38BDF8; text-shadow: 0 0 15px rgba(56,189,248,0.5);">ASTRO</span>
+        <span style="font-size:28px;letter-spacing:6px;font-weight:900;color:rgba(255,255,255,0.6);">MISSION</span>
       </div>
       
       <div style="display:flex;align-items:center;gap:18px; pointer-events: auto;">
@@ -141,34 +141,34 @@
           <span id="view-label" style="font-size:12px; letter-spacing:2px; font-weight:bold;">LAUNCH VIEW</span>
         </button>
 
-        <button class="view-toggle" onclick="toggleHUD()" style="border-color: rgba(255,255,255,0.6);">
+        <button class="view-toggle" onclick="toggleHUD()" style="border-color: rgba(255,255,255,0.3);">
           <span id="hud-icon" style="font-size:16px;">👁</span>
           <span style="font-size:12px; letter-spacing:2px; font-weight:bold;">HUD</span>
         </button>
 
-        <div style="display:flex;align-items:center;gap:10px;border-left:1px solid rgba(255,255,255,0.4);padding-left:18px;">
+        <div style="display:flex;align-items:center;gap:10px;border-left:1px solid rgba(255,255,255,0.2);padding-left:18px;">
           <span id="status-dot" style="width:10px;height:10px;border-radius:50%;background:#4ADE80;box-shadow:0 0 15px #4ADE80;display:inline-block;animation:pulse 2s infinite;"></span>
           <span id="status-txt" style="font-size:12px;letter-spacing:2px;color:#fff; font-weight:bold;">NETWORK NOMINAL</span>
         </div>
-        <span id="utc-clock" style="font-size:12px;letter-spacing:2px;color:rgba(255,255,255,0.8); font-weight:bold; margin-left: 14px;"></span>
+        <span id="utc-clock" style="font-size:12px;letter-spacing:2px;color:rgba(56, 189, 248, 0.8); font-weight:bold; margin-left: 14px;"></span>
       </div>
     </div>
 
     <div style="position:absolute;bottom:20px;left:24px;z-index:20;display:flex;gap:20px;pointer-events:none;" id="bottom-legend">
       <div style="display:flex;align-items:center;gap:8px;"><span style="color:#38BDF8; font-size:16px;">▲</span><span style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:bold;">Active Launches</span></div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.8); display:flex; align-items:center; justify-content:center;"><div style="width:4px; height:4px; background:rgba(255,255,255,0.9); border-radius:50%;"></div></div>
+        <div style="width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center;"><div style="width:4px; height:4px; background:rgba(255,255,255,0.7); border-radius:50%;"></div></div>
         <span style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:bold;">Projected Corridors</span>
       </div>
     </div>
 
-    <div style="position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,#050914 0%,transparent 100%);pointer-events:none;z-index:10;"></div>
+    <div style="position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,#02040a 0%,transparent 100%);pointer-events:none;z-index:10;"></div>
   </div>
 
   <div id="panels-area">
     <div class="panel" id="panel-fleet" style="flex-shrink:0;width:260px;">
       <div class="panel-hdr"><span id="vehicle-hdr">Spacecraft Fleet</span> <span class="min-toggle" onclick="toggleMinimize('panel-fleet')">_</span></div>
-      <div id="agency-filters" style="display:flex; gap:8px; padding:12px 14px; overflow-x:auto; border-bottom:1px solid rgba(255,255,255,0.15); flex-shrink: 0;"></div>
+      <div id="agency-filters" style="display:flex; gap:8px; padding:12px 14px; overflow-x:auto; border-bottom:1px solid rgba(56, 189, 248, 0.15); flex-shrink: 0;"></div>
       <div id="rocket-list" class="panel-content" style="flex:1;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
 
@@ -268,33 +268,33 @@ function showTempWarning() {
 }
 
 // ═══════════════════════════════════════════════════════
-// DATA DICTIONARIES
+// DATA DICTIONARIES 
 // ═══════════════════════════════════════════════════════
 const ROCKETS = [
-  {id:'falcon-9', agency:'SpaceX', name:'Falcon 9', accent:'#38BDF8', tag:'Workhorse of orbit', height:70, baseThrust:7607, baseFuelMass:549, baseCost:67, maxCrew:4, reusable:true, firstFlight:'2010', description:'A reusable, two-stage rocket designed for the reliable transport of people and payloads.', cap:{LEO:22800,GTO:8300}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/falcon_9_image_20230807133459.jpeg'},
-  {id:'falcon-heavy', agency:'SpaceX', name:'Falcon Heavy', accent:'#38BDF8', tag:'Heavy Lifter', height:70, baseThrust:22819, baseFuelMass:1400, baseCost:97, maxCrew:0, reusable:true, firstFlight:'2018', description:'Consists of a strengthened Falcon 9 core with two Falcon 9 first stages as strap-on boosters.', cap:{LEO:63800,GTO:26700}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/falcon_heavy_image_20220129192819.jpeg'},
-  {id:'starship', agency:'SpaceX', name:'Starship', accent:'#38BDF8', tag:'The Mars machine', height:121, baseThrust:74400, baseFuelMass:4600, baseCost:100, maxCrew:100, reusable:true, firstFlight:'2023', description:'A fully reusable transport system designed to carry both crew and cargo to Earth orbit, the Moon, and Mars.', cap:{LEO:150000,GTO:100000}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/starship_image_20231110111145.jpeg'},
-  {id:'crew-dragon', agency:'SpaceX', name:'Crew Dragon', accent:'#38BDF8', tag:'Crew to orbit', height:8, baseThrust:68, baseFuelMass:10, baseCost:55, maxCrew:7, reusable:true, firstFlight:'2019', description:'A class of partially reusable spacecraft designed to ferry astronauts to the ISS.', cap:{LEO:6000,GTO:0}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/crew_dragon_image_20190302092147.jpeg'},
-  {id:'sls', agency:'NASA', name:'SLS', accent:'#FBBF24', tag:'Artemis Moon Rocket', height:98, baseThrust:39000, baseFuelMass:2600, baseCost:2000, maxCrew:4, reusable:false, firstFlight:'2022', description:'The Space Launch System is a super heavy-lift expendable launch vehicle for deep space exploration.', cap:{LEO:95000,GTO:27000}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/space_launch_sy_image_20220331082429.jpeg'},
-  {id:'saturn-v', agency:'NASA', name:'Saturn V', accent:'#FBBF24', tag:'The Moon rocket', height:111, baseThrust:35100, baseFuelMass:2767, baseCost:185, maxCrew:3, reusable:false, firstFlight:'1967', description:'The super heavy-lift launch vehicle used by NASA between 1967 and 1973 for the Apollo program.', cap:{LEO:130000,GTO:48600}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/saturn2520v_image_20190222030036.jpeg'},
-  {id:'atlas-v', agency:'ULA', name:'Atlas V', accent:'#818CF8', tag:'Reliable Workhorse', height:58, baseThrust:3827, baseFuelMass:305, baseCost:109, maxCrew:2, reusable:false, firstFlight:'2002', description:'An expendable launch vehicle that has been a mainstay of US military and scientific launches.', cap:{LEO:18814,GTO:8900}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/atlas_v_image_20201212013334.jpeg'},
-  {id:'vulcan', agency:'ULA', name:'Vulcan Centaur', alias:'Vulcan', accent:'#818CF8', tag:'Next Gen ULA', height:62, baseThrust:4900, baseFuelMass:400, baseCost:110, maxCrew:0, reusable:false, firstFlight:'2024', description:'A heavy-lift launch vehicle developed to meet the demands of the US Space Force and commercial market.', cap:{LEO:27200,GTO:14500}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/vulcan_image_20240107142500.jpeg'},
-  {id:'delta-iv', agency:'ULA', name:'Delta IV Heavy', accent:'#818CF8', tag:'Heavy Payload', height:72, baseThrust:9420, baseFuelMass:600, baseCost:350, maxCrew:0, reusable:false, firstFlight:'2004', description:'An expendable heavy-lift launch vehicle, the largest type of the Delta IV family.', cap:{LEO:28370,GTO:13810}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/delta_iv_heavy__image_20240313133157.jpeg'},
-  {id:'ariane-5', agency:'ESA', name:'Ariane 5', accent:'#2DD4BF', tag:'European Heavy', height:52, baseThrust:13000, baseFuelMass:480, baseCost:137, maxCrew:0, reusable:false, firstFlight:'1996', description:'A highly reliable retired European heavy-lift launch vehicle instrumental in commercial launches.', cap:{LEO:20000,GTO:10865}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/ariane_5_image_20200216110822.jpeg'},
-  {id:'ariane-6', agency:'ESA', name:'Ariane 6', accent:'#2DD4BF', tag:'Europe to orbit', height:63, baseThrust:13400, baseFuelMass:530, baseCost:115, maxCrew:0, reusable:false, firstFlight:'2024', description:'A European expendable launch system currently under development.', cap:{LEO:21650,GTO:11500}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/ariane_62_lifto_image_20240711132056.jpeg'},
-  {id:'vega', agency:'ESA', name:'Vega', accent:'#2DD4BF', tag:'Small payloads', height:30, baseThrust:2200, baseFuelMass:130, baseCost:37, maxCrew:0, reusable:false, firstFlight:'2012', description:'An expendable launch system in use by Arianespace designed to launch small payloads to polar orbits.', cap:{LEO:1450,GTO:0}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/vega_image_20201111143622.jpeg'},
-  {id:'soyuz', agency:'Roscosmos', name:'Soyuz-2', alias:'Soyuz', accent:'#F87171', tag:'Russian workhorse', height:46, baseThrust:4140, baseFuelMass:277, baseCost:45, maxCrew:3, reusable:false, firstFlight:'2004', description:'The legendary family of expendable Russian launch systems.', cap:{LEO:8200,GTO:3250}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/soyuz25202.1a_image_20190726062341.jpg'},
-  {id:'proton', agency:'Roscosmos', name:'Proton-M', accent:'#F87171', tag:'Heavy Lifter', height:53, baseThrust:10000, baseFuelMass:630, baseCost:65, maxCrew:0, reusable:false, firstFlight:'2001', description:'An expendable Russian heavy-lift launch vehicle derived from the older Proton family.', cap:{LEO:23000,GTO:6920}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/proton-m_image_20191211081456.jpeg'},
-  {id:'angara', agency:'Roscosmos', name:'Angara A5', accent:'#F87171', tag:'Next Gen Russian', height:55, baseThrust:9700, baseFuelMass:773, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2014', description:'A family of space-launch vehicles developed by the Khrunichev State Research and Production Space Center.', cap:{LEO:24500,GTO:5400}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/angara_a5_image_20231224095404.jpeg'},
-  {id:'pslv', agency:'ISRO', name:'PSLV', accent:'#FB923C', tag:'Polar sat launcher', height:44, baseThrust:4800, baseFuelMass:320, baseCost:21, maxCrew:0, reusable:false, firstFlight:'1993', description:'The Polar Satellite Launch Vehicle is an expendable medium-lift launch vehicle operated by ISRO.', cap:{LEO:3800,GTO:1200}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/pslv_image_20190224012254.jpeg'},
-  {id:'gslv', agency:'ISRO', name:'GSLV', accent:'#FB923C', tag:'Geosynchronous', height:49, baseThrust:6000, baseFuelMass:414, baseCost:47, maxCrew:0, reusable:false, firstFlight:'2001', description:'An expendable launch system operated by ISRO used for launching satellites into geostationary orbits.', cap:{LEO:5000,GTO:2700}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/gslv_image_20190529135025.jpeg'},
-  {id:'lvm3', agency:'ISRO', name:'LVM3', alias:'GSLV Mk III', accent:'#FB923C', tag:'Heavy Lift', height:43, baseThrust:9300, baseFuelMass:614, baseCost:46, maxCrew:3, reusable:false, firstFlight:'2014', description:'A three-stage medium-lift launch vehicle developed by ISRO for heavy payloads.', cap:{LEO:10000,GTO:4000}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/gslv2520mk2520iii_image_20190604000938.jpeg'},
-  {id:'lm2', agency:'CNSA', name:'Long March 2', alias:'CZ-2', accent:'#4ADE80', tag:'Legacy Lifter', height:42, baseThrust:2960, baseFuelMass:280, baseCost:30, maxCrew:3, reusable:false, firstFlight:'1974', description:'A family of expendable orbital launch vehicles operated by China, including the human-rated 2F.', cap:{LEO:8400,GTO:0}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/long2520march25202f_image_20190224012015.jpeg'},
-  {id:'lm3', agency:'CNSA', name:'Long March 3', alias:'CZ-3', accent:'#4ADE80', tag:'Geostationary', height:55, baseThrust:2960, baseFuelMass:400, baseCost:70, maxCrew:0, reusable:false, firstFlight:'1984', description:'A Chinese orbital launch vehicle series used primarily for launching spacecraft to geostationary transfer orbit.', cap:{LEO:11200,GTO:5500}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/long2520march25203b_image_20190222031215.jpeg'},
-  {id:'lm4', agency:'CNSA', name:'Long March 4', alias:'CZ-4', accent:'#4ADE80', tag:'Polar Orbits', height:45, baseThrust:2960, baseFuelMass:250, baseCost:30, maxCrew:0, reusable:false, firstFlight:'1988', description:'Mainly used to launch meteorological and Earth observation satellites into sun-synchronous orbits.', cap:{LEO:4200,GTO:1500}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/long_march_4b_image_20231031122602.jpeg'},
-  {id:'lm5', agency:'CNSA', name:'Long March 5', alias:'CZ-5', accent:'#4ADE80', tag:'Heavy lifter', height:57, baseThrust:10565, baseFuelMass:860, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2016', description:'A Chinese heavy-lift launch vehicle capable of delivering heavy payloads to LEO, the Moon, and Mars.', cap:{LEO:25000,GTO:14000}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/long_march_5_image_20231214064353.jpeg'},
-  {id:'lm6', agency:'CNSA', name:'Long March 6', alias:'CZ-6', accent:'#4ADE80', tag:'Light liquid-fueled', height:29, baseThrust:1188, baseFuelMass:103, baseCost:15, maxCrew:0, reusable:false, firstFlight:'2015', description:'A Chinese liquid-fuelled carrier rocket developed for small satellite launches.', cap:{LEO:1500,GTO:0}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/long_march_6_image_20231031140026.jpeg'},
-  {id:'electron', agency:'RocketLab', name:'Electron', accent:'#F472B6', tag:'Small sat launcher', height:18, baseThrust:224, baseFuelMass:12, baseCost:7, maxCrew:0, reusable:true, firstFlight:'2017', description:'Dedicated small orbital launch vehicle for cube sats.', cap:{LEO:300,GTO:0}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/electron_image_20190705162646.jpeg'}
+  {id:'falcon-9', agency:'SpaceX', name:'Falcon 9', accent:'#38BDF8', tag:'Workhorse of orbit', height:70, baseThrust:7607, baseFuelMass:549, baseCost:67, maxCrew:4, reusable:true, firstFlight:'2010', description:'A reusable, two-stage rocket designed for the reliable transport of people and payloads.', cap:{LEO:22800,GTO:8300}, image: 'https://upload.wikimedia.org/wikipedia/commons/c/c8/Falcon_9_Flight_28_at_KSC_LC-39A.jpg'},
+  {id:'falcon-heavy', agency:'SpaceX', name:'Falcon Heavy', accent:'#38BDF8', tag:'Heavy Lifter', height:70, baseThrust:22819, baseFuelMass:1400, baseCost:97, maxCrew:0, reusable:true, firstFlight:'2018', description:'Consists of a strengthened Falcon 9 core with two Falcon 9 first stages as strap-on boosters.', cap:{LEO:63800,GTO:26700}, image: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Falcon_Heavy_Demo_Mission_%2839337245145%29.jpg'},
+  {id:'starship', agency:'SpaceX', name:'Starship', accent:'#38BDF8', tag:'The Mars machine', height:121, baseThrust:74400, baseFuelMass:4600, baseCost:100, maxCrew:100, reusable:true, firstFlight:'2023', description:'A fully reusable transport system designed to carry both crew and cargo to Earth orbit, the Moon, and Mars.', cap:{LEO:150000,GTO:100000}, image: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Starship_Flight_Test_3_pad.jpg'},
+  {id:'crew-dragon', agency:'SpaceX', name:'Crew Dragon', accent:'#38BDF8', tag:'Crew to orbit', height:8, baseThrust:68, baseFuelMass:10, baseCost:55, maxCrew:7, reusable:true, firstFlight:'2019', description:'A class of partially reusable spacecraft designed to ferry astronauts to the ISS.', cap:{LEO:6000,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/SpaceX_Crew-1_Launch_%2850608579992%29.jpg'},
+  {id:'sls', agency:'NASA', name:'SLS', accent:'#FBBF24', tag:'Artemis Moon Rocket', height:98, baseThrust:39000, baseFuelMass:2600, baseCost:2000, maxCrew:4, reusable:false, firstFlight:'2022', description:'The Space Launch System is a super heavy-lift expendable launch vehicle for deep space exploration.', cap:{LEO:95000,GTO:27000}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Artemis_1_on_launch_pad.jpg'},
+  {id:'saturn-v', agency:'NASA', name:'Saturn V', accent:'#FBBF24', tag:'The Moon rocket', height:111, baseThrust:35100, baseFuelMass:2767, baseCost:185, maxCrew:3, reusable:false, firstFlight:'1967', description:'The super heavy-lift launch vehicle used by NASA between 1967 and 1973 for the Apollo program.', cap:{LEO:130000,GTO:48600}, image: 'https://upload.wikimedia.org/wikipedia/commons/1/16/Apollo_11_Launch_-_GPN-2000-000630.jpg'},
+  {id:'atlas-v', agency:'ULA', name:'Atlas V', accent:'#818CF8', tag:'Reliable Workhorse', height:58, baseThrust:3827, baseFuelMass:305, baseCost:109, maxCrew:2, reusable:false, firstFlight:'2002', description:'An expendable launch vehicle that has been a mainstay of US military and scientific launches.', cap:{LEO:18814,GTO:8900}, image: 'https://upload.wikimedia.org/wikipedia/commons/9/94/Atlas_V_AEHF-4_launch.jpg'},
+  {id:'vulcan', agency:'ULA', name:'Vulcan Centaur', alias:'Vulcan', accent:'#818CF8', tag:'Next Gen ULA', height:62, baseThrust:4900, baseFuelMass:400, baseCost:110, maxCrew:0, reusable:false, firstFlight:'2024', description:'A heavy-lift launch vehicle developed to meet the demands of the US Space Force and commercial market.', cap:{LEO:27200,GTO:14500}, image: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Vulcan_Centaur_Certification_Flight_1_%2853452655841%29.jpg'},
+  {id:'delta-iv', agency:'ULA', name:'Delta IV Heavy', accent:'#818CF8', tag:'Heavy Payload', height:72, baseThrust:9420, baseFuelMass:600, baseCost:350, maxCrew:0, reusable:false, firstFlight:'2004', description:'An expendable heavy-lift launch vehicle, the largest type of the Delta IV family.', cap:{LEO:28370,GTO:13810}, image: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Delta_IV_Heavy_NROL-44_launch_%2850702879553%29.jpg'},
+  {id:'ariane-5', agency:'ESA', name:'Ariane 5', accent:'#2DD4BF', tag:'European Heavy', height:52, baseThrust:13000, baseFuelMass:480, baseCost:137, maxCrew:0, reusable:false, firstFlight:'1996', description:'A highly reliable retired European heavy-lift launch vehicle instrumental in commercial launches.', cap:{LEO:20000,GTO:10865}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/07/Ariane_5_flight_VA256.jpg'},
+  {id:'ariane-6', agency:'ESA', name:'Ariane 6', accent:'#2DD4BF', tag:'Europe to orbit', height:63, baseThrust:13400, baseFuelMass:530, baseCost:115, maxCrew:0, reusable:false, firstFlight:'2024', description:'A European expendable launch system currently under development.', cap:{LEO:21650,GTO:11500}, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ariane_6_on_launch_pad_with_gantry_removed.jpg/800px-Ariane_6_on_launch_pad_with_gantry_removed.jpg'},
+  {id:'vega', agency:'ESA', name:'Vega', accent:'#2DD4BF', tag:'Small payloads', height:30, baseThrust:2200, baseFuelMass:130, baseCost:37, maxCrew:0, reusable:false, firstFlight:'2012', description:'An expendable launch system in use by Arianespace designed to launch small payloads to polar orbits.', cap:{LEO:1450,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/5/52/VV16_liftoff.jpg'},
+  {id:'soyuz', agency:'Roscosmos', name:'Soyuz-2', alias:'Soyuz', accent:'#F87171', tag:'Russian workhorse', height:46, baseThrust:4140, baseFuelMass:277, baseCost:45, maxCrew:3, reusable:false, firstFlight:'2004', description:'The legendary family of expendable Russian launch systems.', cap:{LEO:8200,GTO:3250}, image: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Soyuz-FG_launch_vehicle_rolls_out_to_the_launch_pad.jpg'},
+  {id:'proton', agency:'Roscosmos', name:'Proton-M', accent:'#F87171', tag:'Heavy Lifter', height:53, baseThrust:10000, baseFuelMass:630, baseCost:65, maxCrew:0, reusable:false, firstFlight:'2001', description:'An expendable Russian heavy-lift launch vehicle derived from the older Proton family.', cap:{LEO:23000,GTO:6920}, image: 'https://upload.wikimedia.org/wikipedia/commons/7/72/Proton_Zvezda_crop.jpg'},
+  {id:'angara', agency:'Roscosmos', name:'Angara A5', accent:'#F87171', tag:'Next Gen Russian', height:55, baseThrust:9700, baseFuelMass:773, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2014', description:'A family of space-launch vehicles developed by the Khrunichev State Research and Production Space Center.', cap:{LEO:24500,GTO:5400}, image: 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Angara-A5_1.jpg'},
+  {id:'pslv', agency:'ISRO', name:'PSLV', accent:'#FB923C', tag:'Polar sat launcher', height:44, baseThrust:4800, baseFuelMass:320, baseCost:21, maxCrew:0, reusable:false, firstFlight:'1993', description:'The Polar Satellite Launch Vehicle is an expendable medium-lift launch vehicle operated by ISRO.', cap:{LEO:3800,GTO:1200}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/PSLV-C47_liftoff.jpg'},
+  {id:'gslv', agency:'ISRO', name:'GSLV', accent:'#FB923C', tag:'Geosynchronous', height:49, baseThrust:6000, baseFuelMass:414, baseCost:47, maxCrew:0, reusable:false, firstFlight:'2001', description:'An expendable launch system operated by ISRO used for launching satellites into geostationary orbits.', cap:{LEO:5000,GTO:2700}, image: 'https://upload.wikimedia.org/wikipedia/commons/8/89/GSLV-F09_liftoff.jpg'},
+  {id:'lvm3', agency:'ISRO', name:'LVM3', alias:'GSLV Mk III', accent:'#FB923C', tag:'Heavy Lift', height:43, baseThrust:9300, baseFuelMass:614, baseCost:46, maxCrew:3, reusable:false, firstFlight:'2014', description:'A three-stage medium-lift launch vehicle developed by ISRO for heavy payloads.', cap:{LEO:10000,GTO:4000}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/LVM3-M3_on_the_launch_pad.jpg'},
+  {id:'lm2', agency:'CNSA', name:'Long March 2', alias:'CZ-2', accent:'#4ADE80', tag:'Legacy Lifter', height:42, baseThrust:2960, baseFuelMass:280, baseCost:30, maxCrew:3, reusable:false, firstFlight:'1974', description:'A family of expendable orbital launch vehicles operated by China, including the human-rated 2F.', cap:{LEO:8400,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Shenzhou-12_Launch.jpg'},
+  {id:'lm3', agency:'CNSA', name:'Long March 3', alias:'CZ-3', accent:'#4ADE80', tag:'Geostationary', height:55, baseThrust:2960, baseFuelMass:400, baseCost:70, maxCrew:0, reusable:false, firstFlight:'1984', description:'A Chinese orbital launch vehicle series used primarily for launching spacecraft to geostationary transfer orbit.', cap:{LEO:11200,GTO:5500}, image: 'https://upload.wikimedia.org/wikipedia/commons/3/30/Long_March_3B_Y86_launching_Chinasat_6D.jpg'},
+  {id:'lm4', agency:'CNSA', name:'Long March 4', alias:'CZ-4', accent:'#4ADE80', tag:'Polar Orbits', height:45, baseThrust:2960, baseFuelMass:250, baseCost:30, maxCrew:0, reusable:false, firstFlight:'1988', description:'Mainly used to launch meteorological and Earth observation satellites into sun-synchronous orbits.', cap:{LEO:4200,GTO:1500}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Long_March_5B_Y1_lifting_off.jpg'},
+  {id:'lm5', agency:'CNSA', name:'Long March 5', alias:'CZ-5', accent:'#4ADE80', tag:'Heavy lifter', height:57, baseThrust:10565, baseFuelMass:860, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2016', description:'A Chinese heavy-lift launch vehicle capable of delivering heavy payloads to LEO, the Moon, and Mars.', cap:{LEO:25000,GTO:14000}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Long_March_5B_Y1_lifting_off.jpg'},
+  {id:'lm6', agency:'CNSA', name:'Long March 6', alias:'CZ-6', accent:'#4ADE80', tag:'Light liquid-fueled', height:29, baseThrust:1188, baseFuelMass:103, baseCost:15, maxCrew:0, reusable:false, firstFlight:'2015', description:'A Chinese liquid-fuelled carrier rocket developed for small satellite launches.', cap:{LEO:1500,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Electron_Still_Testing.jpg'}, 
+  {id:'electron', agency:'RocketLab', name:'Electron', accent:'#F472B6', tag:'Small sat launcher', height:18, baseThrust:224, baseFuelMass:12, baseCost:7, maxCrew:0, reusable:true, firstFlight:'2017', description:'Dedicated small orbital launch vehicle for cube sats.', cap:{LEO:300,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Electron_Still_Testing.jpg'}
 ];
 
 const SATELLITES = [
@@ -308,19 +308,19 @@ const SATELLITES = [
   {id:'saturn', name: 'Saturn', type: 'Gas Giant', class: 'public', agency: 'Solar System', mass: '5.6×10^26', orbit: 'Sun', speed: 34821, firstFlight: '4.5 Billion Yrs', description: 'The sixth planet from the Sun, known for its prominent ring system.', image: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Saturn_during_Equinox.jpg', color: '#ead6b8'},
   {id:'uranus', name: 'Uranus', type: 'Ice Giant', class: 'public', agency: 'Solar System', mass: '8.6×10^25', orbit: 'Sun', speed: 24477, firstFlight: '4.5 Billion Yrs', description: 'The seventh planet from the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Uranus2.jpg', color: '#818CF8'},
   {id:'neptune', name: 'Neptune', type: 'Ice Giant', class: 'public', agency: 'Solar System', mass: '1.0×10^26', orbit: 'Sun', speed: 19566, firstFlight: '4.5 Billion Yrs', description: 'The eighth and farthest-known Solar planet from the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Neptune_-_Voyager_2_%282974187539%29_flatten_crop.jpg', color: '#2DD4BF'},
-  {id:'iss', name: 'International Space Station', type: 'Orbital Station', class: 'public', agency: 'NASA/Roscosmos', mass: '450,000', orbit: 'LEO', speed: 27600, firstFlight: '1998', description: 'A modular space station in low Earth orbit.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/international2520space2520station_image_20190220215716.jpeg', color: '#ffffff'},
-  {id:'tiangong', name: 'Tiangong Space Station', type: 'Orbital Station', class: 'public', agency: 'CNSA', mass: '100,000', orbit: 'LEO', speed: 27600, firstFlight: '2021', description: 'A space station constructed by China in low Earth orbit.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/tiangong_image_20231031004146.png', color: '#4ADE80'},
-  {id:'hubble', name: 'Hubble Space Telescope', type: 'Space Telescope', class: 'public', agency: 'NASA/ESA', mass: '11,110', orbit: 'LEO', speed: 27300, firstFlight: '1990', description: 'A space telescope launched into low Earth orbit in 1990.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/hubble2520space2520telescope_image_20190222030955.jpeg', color: '#FBBF24'},
-  {id:'starlink', name: 'Starlink Constellation', type: 'Comms Network', class: 'public', agency: 'SpaceX', mass: '260', orbit: 'LEO', speed: 27000, firstFlight: '2019', description: 'A satellite internet constellation operated by SpaceX.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/starlink_image_20231120150338.jpeg', color: '#38BDF8'},
-  {id:'gps', name: 'GPS Block III', type: 'Navigation', class: 'public', agency: 'US Space Force', mass: '3,880', orbit: 'MEO', speed: 13900, firstFlight: '2018', description: 'Global Positioning System satellites.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20230113091016.jpeg', color: '#818CF8'},
-  {id:'galileo', name: 'Galileo Constellation', type: 'Navigation', class: 'public', agency: 'ESA', mass: '733', orbit: 'MEO', speed: 13200, firstFlight: '2011', description: 'Europe’s own global navigation satellite system.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/soyuz25202.1b_image_20211201080649.jpg', color: '#2DD4BF'},
-  {id:'goes', name: 'GOES-18', type: 'Weather Observation', class: 'public', agency: 'NOAA / NASA', mass: '5,192', orbit: 'GEO', speed: 11050, firstFlight: '2022', description: 'Advanced imagery and atmospheric measurements.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/atlas2520v252_image_20220224083652.jpeg', color: '#FBBF24'},
-  {id:'syracuse', name: 'Syracuse 4A', type: 'Military Comms', class: 'public', agency: 'French MoD', mass: '3,800', orbit: 'GEO', speed: 11050, firstFlight: '2021', description: 'A French military communications satellite.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/ariane2520525_image_20211022135606.jpeg', color: '#2DD4BF'},
-  {id:'chandra', name: 'Chandra X-ray', type: 'Space Telescope', class: 'public', agency: 'NASA', mass: '4,800', orbit: 'HEO', speed: 25000, firstFlight: '1999', description: 'A Flagship-class space telescope launched on STS-93.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/space_shuttle_c_image_20240306132717.jpeg', color: '#FBBF24'},
-  {id:'jwst', name: 'James Webb Space Telescope', type: 'Deep Space Observatory', class: 'public', agency: 'NASA / ESA', mass: '6,161', orbit: 'L2 Halo', speed: 1000, firstFlight: '2021', description: 'The largest optical telescope in space.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/ariane2520525_image_20211222091720.jpeg', color: '#FBBF24'},
-  {id:'usa326', name: 'USA-326 / NROL-87', type: 'Reconnaissance', class: 'classified', agency: 'NRO (USA)', mass: '---', orbit: 'LEO', speed: 27500, firstFlight: '2022', description: '[ CLASSIFIED NRO ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20220202080345.jpeg', color: '#EF4444'},
-  {id:'kosmos', name: 'Kosmos 2558', type: 'Reconnaissance', class: 'classified', agency: 'Russian MoD', mass: '---', orbit: 'SSO', speed: 27400, firstFlight: '2022', description: '[ CLASSIFIED RUSSIAN ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/soyuz-2.1v_image_20191122081651.jpg', color: '#EF4444'},
-  {id:'vanguard', name: 'Vanguard 1', type: 'Historical Relic', class: 'public', agency: 'US Navy', mass: '1.47', orbit: 'MEO', speed: 25000, firstFlight: '1958', description: 'The oldest human-made object still in orbit. Communication lost in 1964.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/vanguard_1_on_p_image_20240411114304.jpeg', color: '#aaaaaa'}
+  {id:'iss', name: 'International Space Station', type: 'Orbital Station', class: 'public', agency: 'NASA/Roscosmos', mass: '450,000', orbit: 'LEO', speed: 27600, firstFlight: '1998', description: 'A modular space station in low Earth orbit.', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/ISS_after_completion_of_STS-134.jpg', color: '#ffffff'},
+  {id:'tiangong', name: 'Tiangong Space Station', type: 'Orbital Station', class: 'public', agency: 'CNSA', mass: '100,000', orbit: 'LEO', speed: 27600, firstFlight: '2021', description: 'A space station constructed by China in low Earth orbit.', image: 'https://upload.wikimedia.org/wikipedia/commons/4/42/Tiangong_Space_Station_%282023-11-28%29.jpg', color: '#4ADE80'},
+  {id:'hubble', name: 'Hubble Space Telescope', type: 'Space Telescope', class: 'public', agency: 'NASA/ESA', mass: '11,110', orbit: 'LEO', speed: 27300, firstFlight: '1990', description: 'A space telescope launched into low Earth orbit in 1990.', image: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/HST-SM4.jpeg', color: '#FBBF24'},
+  {id:'starlink', name: 'Starlink Constellation', type: 'Comms Network', class: 'public', agency: 'SpaceX', mass: '260', orbit: 'LEO', speed: 27000, firstFlight: '2019', description: 'A satellite internet constellation operated by SpaceX.', image: 'https://upload.wikimedia.org/wikipedia/commons/d/dd/Starlink_Mission_%2847926144123%29.jpg', color: '#38BDF8'},
+  {id:'gps', name: 'GPS Block III', type: 'Navigation', class: 'public', agency: 'US Space Force', mass: '3,880', orbit: 'MEO', speed: 13900, firstFlight: '2018', description: 'Global Positioning System satellites.', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/GPS_Block_IIIA.jpg', color: '#818CF8'},
+  {id:'galileo', name: 'Galileo Constellation', type: 'Navigation', class: 'public', agency: 'ESA', mass: '733', orbit: 'MEO', speed: 13200, firstFlight: '2011', description: 'Europe’s own global navigation satellite system.', image: 'https://upload.wikimedia.org/wikipedia/commons/6/64/Galileo_satellite_artist_impression.jpg', color: '#2DD4BF'},
+  {id:'goes', name: 'GOES-18', type: 'Weather Observation', class: 'public', agency: 'NOAA / NASA', mass: '5,192', orbit: 'GEO', speed: 11050, firstFlight: '2022', description: 'Advanced imagery and atmospheric measurements.', image: 'https://upload.wikimedia.org/wikipedia/commons/0/07/GOES-16_satellite.jpg', color: '#FBBF24'},
+  {id:'syracuse', name: 'Syracuse 4A', type: 'Military Comms', class: 'public', agency: 'French MoD', mass: '3,800', orbit: 'GEO', speed: 11050, firstFlight: '2021', description: 'A French military communications satellite.', image: 'https://upload.wikimedia.org/wikipedia/commons/b/bb/Syracuse_4A.jpg', color: '#2DD4BF'},
+  {id:'chandra', name: 'Chandra X-ray', type: 'Space Telescope', class: 'public', agency: 'NASA', mass: '4,800', orbit: 'HEO', speed: 25000, firstFlight: '1999', description: 'A Flagship-class space telescope launched on STS-93.', image: 'https://upload.wikimedia.org/wikipedia/commons/7/75/Chandra_X-ray_Observatory.jpg', color: '#FBBF24'},
+  {id:'jwst', name: 'James Webb Space Telescope', type: 'Deep Space Observatory', class: 'public', agency: 'NASA / ESA', mass: '6,161', orbit: 'L2 Halo', speed: 1000, firstFlight: '2021', description: 'The largest optical telescope in space.', image: 'https://upload.wikimedia.org/wikipedia/commons/c/c2/James_Webb_Space_Telescope_2021.jpg', color: '#FBBF24'},
+  {id:'usa326', name: 'USA-326 / NROL-87', type: 'Reconnaissance', class: 'classified', agency: 'NRO (USA)', mass: '---', orbit: 'LEO', speed: 27500, firstFlight: '2022', description: '[ CLASSIFIED NRO ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://upload.wikimedia.org/wikipedia/commons/a/af/NROL-44_Launch_%28201210-F-F3456-1002%29.jpg', color: '#EF4444'},
+  {id:'kosmos', name: 'Kosmos 2558', type: 'Reconnaissance', class: 'classified', agency: 'Russian MoD', mass: '---', orbit: 'SSO', speed: 27400, firstFlight: '2022', description: '[ CLASSIFIED RUSSIAN ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Soyuz-FG_launch_vehicle_rolls_out_to_the_launch_pad.jpg', color: '#EF4444'},
+  {id:'vanguard', name: 'Vanguard 1', type: 'Historical Relic', class: 'public', agency: 'US Navy', mass: '1.47', orbit: 'MEO', speed: 25000, firstFlight: '1958', description: 'The oldest human-made object still in orbit. Communication lost in 1964.', image: 'https://upload.wikimedia.org/wikipedia/commons/2/25/Vanguard_1.jpg', color: '#aaaaaa'}
 ];
 
 const AGENCIES = ['All', 'SpaceX', 'NASA', 'ULA', 'ESA', 'Roscosmos', 'ISRO', 'CNSA', 'RocketLab'];
@@ -443,16 +443,19 @@ const orbitGroup = new THREE.Group();
 const macroSolarGroup = new THREE.Group();
 const interactableOrbitals = []; 
 
+const leoGroup = new THREE.Group();
+const meoGroup = new THREE.Group();
+const geoGroup = new THREE.Group();
+
 let targetCamPos = new THREE.Vector3(0, 1.0, 2.6);
 let targetCamLook = new THREE.Vector3(0, 0, 0);
 let currentCamLook = new THREE.Vector3(0, 0, 0);
 
-// Camera Tracking Logic
 let trackedPlanet = null;
 let trackingOffset = new THREE.Vector3(0, 5, 20);
 
 window.toggleGlobeView = function() {
-    viewMode = (viewMode + 1) % 2; // Cycle between 0 (Launch) and 1 (Orbital)
+    viewMode = (viewMode + 1) % 2; 
     isSolarSystem = false;
     trackedPlanet = null;
 
@@ -472,7 +475,7 @@ window.toggleGlobeView = function() {
       legend.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="color:#38BDF8; font-size:14px;">▲</span><span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:bold;">Active Launches</span></div><div style="display:flex;align-items:center;gap:6px;"><div style="width:12px; height:12px; border-radius:50%; border:1px solid #fff; opacity:0.6; display:flex; align-items:center; justify-content:center;"><div style="width:2px; height:2px; background:#fff; border-radius:50%;"></div></div><span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:bold;">Projected Corridors</span></div>`;
       
       targetCamPos.set(0, 1.0, 2.6);
-      targetCamLook.set(0, hudVisible ? 0 : -0.5, 0); // Offset up for cinematic mode
+      targetCamLook.set(0, hudVisible ? 0 : -0.5, 0); 
       
       state.selectionType = 'rocket'; state.selectedId = ROCKETS[0].id; state.agency = 'All'; 
       if(window.updatePersistentLines) window.updatePersistentLines(state.selectedId);
@@ -484,7 +487,13 @@ window.toggleGlobeView = function() {
       globeMain.visible = true; padGroup.visible = false; 
       orbitGroup.visible = true; macroSolarGroup.visible = false;
       fleetHdr.textContent = 'Orbital Assets';
-      legend.innerHTML = `<div style="display:flex;align-items:center;gap:5px;"><span style="color:#88bbff; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">Satellite Swarm</span></div><div style="display:flex;align-items:center;gap:5px;"><span style="color:#FBBF24;">■</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">Telescopes</span></div><div style="display:flex;align-items:center;gap:5px;"><span style="color:#818CF8;">♦</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">Navigation</span></div><div style="display:flex;align-items:center;gap:5px;"><span style="color:#EF4444;">▲</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">Classified</span></div>`;
+      
+      legend.innerHTML = `
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#4ADE80; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">LEO Swarms (Starlink)</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#818CF8; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">MEO (GPS/GNSS)</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#FBBF24; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">GEO (Telecom/Weather)</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#ffffff;">■</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">Tracked Assets</span></div>
+      `;
       
       targetCamPos.set(0, 2.0, 6.0);
       targetCamLook.set(0, hudVisible ? 0 : -0.5, 0);
@@ -506,7 +515,7 @@ function toggleHUD() {
     globeDiv.style.height = "100%";
     panelsArea.style.transform = "translateY(120%)";
     icon.textContent = "✖";
-    targetCamLook.set(0, -0.5, 0); // Re-center for full screen
+    targetCamLook.set(0, -0.5, 0); 
   } else {
     panelsArea.style.transform = "translateY(0)";
     icon.textContent = "👁";
@@ -519,13 +528,13 @@ function toggleHUD() {
 
 (function initGlobe(){
   const el=document.getElementById('globe-mount');
-  const W=el.clientWidth, H=el.clientHeight;
   const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(50,W/H,0.1,2000); 
+  const camera=new THREE.PerspectiveCamera(50,el.clientWidth/el.clientHeight,0.1,2000); 
   camera.position.copy(targetCamPos); camera.lookAt(targetCamLook);
+  window.appCamera = camera;
 
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-  renderer.setSize(W,H); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(el.clientWidth,el.clientHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   renderer.setClearColor(0,0); el.appendChild(renderer.domElement);
 
   globeMain = new THREE.Group(); scene.add(globeMain);
@@ -534,18 +543,16 @@ function toggleHUD() {
   const txLoader = new THREE.TextureLoader();
   const getTx = (name) => txLoader.load(`https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/${name}`);
 
-  // High-fidelity Main Earth
   const earthMat = new THREE.MeshPhongMaterial({
       map: getTx('earthmap1k.jpg'),
       bumpMap: getTx('earthbump1k.jpg'),
       bumpScale: 0.015,
       specularMap: getTx('earthspec1k.jpg'),
       specular: new THREE.Color(0x333333),
-      shininess: 0
+      shininess: 15
   });
   globeMain.add(new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), earthMat));
 
-  // Atmosphere glow layers
   [{r:1.01,c:0x3a8fff,o:0.15},{r:1.03,c:0x2266cc,o:0.08},{r:1.06,c:0x0d44aa,o:0.04}].forEach(function(a){
     globeMain.add(new THREE.Mesh(new THREE.SphereGeometry(a.r,48,48), new THREE.MeshPhongMaterial({color:a.c,transparent:true,opacity:a.o,side:THREE.FrontSide})));
   });
@@ -564,13 +571,14 @@ function toggleHUD() {
   macroSolarGroup.add(macroSunLight);
   macroSolarGroup.add(new THREE.AmbientLight(0x404040, 0.8));
 
-  // THE SUN (Not 3D, glowing basic material)
   const sunCore = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 32), new THREE.MeshBasicMaterial({color: 0xfffae6}));
-  sunCore.userData = { id: 'sun' }; interactableOrbitals.push(sunCore); macroSolarGroup.add(sunCore);
+  var sunHitbox = new THREE.Mesh(new THREE.SphereGeometry(16, 16, 16), new THREE.MeshBasicMaterial({visible: false}));
+  sunHitbox.userData = { id: 'sun' };
+  interactableOrbitals.push(sunHitbox); macroSolarGroup.add(sunHitbox);
+  macroSolarGroup.add(sunCore);
   macroSolarGroup.add(new THREE.Mesh(new THREE.SphereGeometry(12, 32, 32), new THREE.MeshBasicMaterial({color: 0xffaa00, transparent: true, opacity: 0.15})));
   macroSolarGroup.add(new THREE.Mesh(new THREE.SphereGeometry(15, 32, 32), new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.05})));
 
-  // ALL OTHER PLANETS (3D Topographic)
   const planetsData = [
      {id: 'mercury', d: 18, s: 0.4, tx: 'mercurymap.jpg', speed: 0.008},
      {id: 'venus', d: 26, s: 0.9, tx: 'venusmap.jpg', speed: 0.006},
@@ -584,13 +592,20 @@ function toggleHUD() {
 
   window.backgroundPlanets = [];
   planetsData.forEach(p => {
-     const path = new THREE.Line(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, p.d, p.d, 0, 2 * Math.PI, false, 0).getPoints(128)), new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.1}));
+     const path = new THREE.Line(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, p.d, p.d, 0, 2 * Math.PI, false, 0).getPoints(128)), new THREE.LineBasicMaterial({color: 0x4f46e5, transparent: true, opacity: 0.2}));
      path.rotation.x = Math.PI / 2; macroSolarGroup.add(path);
      
      const pGroup = new THREE.Group();
      const pMat = new THREE.MeshStandardMaterial({ map: getTx(p.tx), roughness: 0.8, metalness: 0.1 });
      const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.s, 32, 32), pMat);
-     pMesh.position.x = p.d; pMesh.userData = { id: p.id }; interactableOrbitals.push(pMesh); pGroup.add(pMesh);
+     pMesh.position.x = p.d; 
+     
+     const pHitbox = new THREE.Mesh(new THREE.SphereGeometry(Math.max(p.s * 1.5, 2.0), 16, 16), new THREE.MeshBasicMaterial({visible: false}));
+     pHitbox.position.x = p.d;
+     pHitbox.userData = { id: p.id };
+     interactableOrbitals.push(pHitbox);
+     
+     pGroup.add(pMesh); pGroup.add(pHitbox);
 
      if(p.hasMoon) {
          const mm = new THREE.Mesh(new THREE.SphereGeometry(p.s*0.25, 16, 16), new THREE.MeshStandardMaterial({map: getTx('moonmap1k.jpg'), roughness: 1.0}));
@@ -603,10 +618,25 @@ function toggleHUD() {
      macroSolarGroup.add(pGroup); pGroup.rotation.y = Math.random() * Math.PI * 2; window.backgroundPlanets.push({group: pGroup, speed: p.speed});
   });
 
+  // SCATTERED ASTEROIDS (Across the whole system)
+  const astGeo = new THREE.BufferGeometry();
+  const astPos = [];
+  for(let i=0; i<4500; i++) {
+      let r = 18 + Math.random() * 170; // From just outside sun to past Neptune
+      let theta = Math.random() * Math.PI * 2;
+      let y = (Math.random() - 0.5) * 15; // Vertical scatter volume
+      astPos.push(r*Math.cos(theta), y, r*Math.sin(theta));
+  }
+  astGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(astPos), 3));
+  const astMat = new THREE.PointsMaterial({color: 0x888888, size: 0.15, transparent: true, opacity: 0.6});
+  const astBelt = new THREE.Points(astGeo, astMat);
+  macroSolarGroup.add(astBelt);
+  window.asteroidBelt = astBelt;
+
   const moonOrbit = new THREE.Group();
   const localMoon = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), new THREE.MeshStandardMaterial({map: getTx('moonmap1k.jpg'), roughness: 1.0}));
   localMoon.position.set(3.5, 0.2, 0); localMoon.userData = { id: 'moon' }; interactableOrbitals.push(localMoon); moonOrbit.add(localMoon);
-  const mLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, 3.5, 3.5, 0, 2 * Math.PI, false, 0).getPoints(100)), new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.15}));
+  const mLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, 3.5, 3.5, 0, 2 * Math.PI, false, 0).getPoints(100)), new THREE.LineBasicMaterial({color: 0xfbbf24, transparent: true, opacity: 0.2}));
   mLine.rotation.x = Math.PI / 2; moonOrbit.add(mLine); orbitGroup.add(moonOrbit); 
 
   function ll2v(lat,lng,r){
@@ -622,29 +652,18 @@ function toggleHUD() {
       var ring=new THREE.Mesh(new THREE.RingGeometry(0.012,0.016,18),mat);
       ring.position.copy(pos); ring.lookAt(pos.clone().multiplyScalar(2)); padGroup.add(ring);
       
-      var hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
+      var hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
       hitbox.position.copy(pos); hitbox.userData = { isPad: true, name: pad.name || 'Launch Complex', color: pad.color, ring: ring }; padGroup.add(hitbox);
       pad.drawn = true;
     });
-
-    var pgPos = ll2v(53.9171, -122.7497, 1.012);
-    var pgRing = new THREE.Mesh(new THREE.RingGeometry(0.012, 0.018, 18), new THREE.MeshBasicMaterial({color: 0x4ADE80, transparent: true, opacity: 0.8, side: THREE.DoubleSide}));
-    pgRing.position.copy(pgPos); pgRing.lookAt(pgPos.clone().multiplyScalar(2)); padGroup.add(pgRing);
-    var pgHitbox = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
-    pgHitbox.position.copy(pgPos); pgHitbox.userData = { isPad: true, typeLabel: 'TRACKING STATION', name: 'NORTHERN COMMAND (YXS)', color: '#4ADE80', ring: pgRing };
-    padGroup.add(pgHitbox);
   }
 
   function makeMesh(color, id, geo){
     var g=new THREE.Group(); g.userData = { id: id };
     var core = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({color:color,emissive:color,emissiveIntensity:0.6}));
-    
-    // LARGE INVISIBLE HITBOX FOR EASY CLICKING
-    var hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
+    var hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
     hitbox.userData = { id: id };
-    
-    g.add(core); g.add(hitbox);
-    interactableOrbitals.push(hitbox);
+    g.add(core); g.add(hitbox); interactableOrbitals.push(hitbox);
     orbitGroup.add(g); return g;
   }
   
@@ -654,11 +673,8 @@ function toggleHUD() {
      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([origin, origin.clone().multiplyScalar(5.0)]), new THREE.LineBasicMaterial({color: color, transparent: true, opacity: 0.8})));
      var label = new THREE.Mesh(new THREE.OctahedronGeometry(0.04), new THREE.MeshBasicMaterial({color: color, wireframe:true}));
      label.position.copy(origin); 
-     
-     var hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
-     hitbox.position.copy(origin);
-     hitbox.userData = { id: id };
-     
+     var hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
+     hitbox.position.copy(origin); hitbox.userData = { id: id };
      g.add(label); g.add(hitbox); interactableOrbitals.push(hitbox);
      orbitGroup.add(g); return g;
   }
@@ -673,16 +689,39 @@ function toggleHUD() {
     { id: 'jwst', isStaticDeepSpace: true, mesh: makePointer('#FBBF24', 'jwst') }
   ];
 
-  const satCount = 1200; const satGeo = new THREE.BufferGeometry(); const satPos = new Float32Array(satCount * 3); const satData = [];
-  for(let i=0; i<satCount; i++) {
-      let r = 1.08 + Math.random() * 0.15; let inc = Math.random() * Math.PI; let theta = Math.random() * Math.PI * 2;
-      let speed = (0.003 + Math.random() * 0.008) * (Math.random() > 0.5 ? 1 : -1);
-      satData.push({r, inc, theta, speed});
-      satPos[i*3] = r * Math.cos(theta); satPos[i*3+1] = r * Math.sin(theta) * Math.sin(inc); satPos[i*3+2] = r * Math.sin(theta) * Math.cos(inc);
+  // 1. LEO - STARLINK SWARMS
+  const slGeo = new THREE.BufferGeometry(); const slPos = [];
+  for(let c=0; c<60; c++) {
+      let r = 1.08 + Math.random() * 0.05; let inc = Math.random() * Math.PI; let pTheta = Math.random() * Math.PI * 2;
+      let chainLen = 30 + Math.random()*40;
+      for(let i=0; i<chainLen; i++) {
+          let theta = pTheta + i*0.01; 
+          slPos.push(r*Math.cos(theta), r*Math.sin(theta)*Math.sin(inc), r*Math.sin(theta)*Math.cos(inc));
+      }
   }
-  satGeo.setAttribute('position', new THREE.BufferAttribute(satPos, 3));
-  const satPoints = new THREE.Points(satGeo, new THREE.PointsMaterial({color: 0x88bbff, size: 0.003, transparent: true, opacity: 0.8}));
-  orbitGroup.add(satPoints);
+  slGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slPos), 3));
+  leoGroup.add(new THREE.Points(slGeo, new THREE.PointsMaterial({color: 0x4ADE80, size: 0.0025, transparent: true, opacity: 0.6})));
+  orbitGroup.add(leoGroup);
+
+  // 2. MEO - GPS / GNSS
+  const meoGeo = new THREE.BufferGeometry(); const meoPos = [];
+  for(let i=0; i<400; i++) {
+      let r = 2.5 + Math.random() * 1.5; let inc = Math.random() * Math.PI; let theta = Math.random() * Math.PI * 2;
+      meoPos.push(r*Math.cos(theta), r*Math.sin(theta)*Math.sin(inc), r*Math.sin(theta)*Math.cos(inc));
+  }
+  meoGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(meoPos), 3));
+  meoGroup.add(new THREE.Points(meoGeo, new THREE.PointsMaterial({color: 0x818CF8, size: 0.006, transparent: true, opacity: 0.8})));
+  orbitGroup.add(meoGroup);
+
+  // 3. GEO - TELECOM / WEATHER
+  const geGeo = new THREE.BufferGeometry(); const gePos = [];
+  for(let i=0; i<600; i++) {
+      let r = 6.6 + (Math.random()*0.1 - 0.05); let theta = Math.random() * Math.PI * 2; let yOffset = (Math.random() * 0.1) - 0.05;
+      gePos.push(r*Math.cos(theta), yOffset, r*Math.sin(theta));
+  }
+  geGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(gePos), 3));
+  geoGroup.add(new THREE.Points(geGeo, new THREE.PointsMaterial({color: 0xFBBF24, size: 0.008, transparent: true, opacity: 0.9})));
+  orbitGroup.add(geoGroup);
 
   const persistentLinesGroup = new THREE.Group(); globeMain.add(persistentLinesGroup);
 
@@ -702,10 +741,10 @@ function toggleHUD() {
       const endPos = ll2v(pad.lat + (az === 180 ? -30 : 10) + (Math.random() * 10 - 5), pad.lng + (az === 90 ? 40 : 0) + (Math.random() * 10 - 5), altTarget);
       const midPos = startPos.clone().lerp(endPos, 0.5).normalize().multiplyScalar(altTarget * 1.05);
       const curvePoints = new THREE.QuadraticBezierCurve3(startPos, midPos, endPos).getPoints(100);
-      persistentLinesGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curvePoints), new THREE.LineBasicMaterial({ color: r.accent, transparent: true, opacity: 0.35 })));
-      const ring = new THREE.Mesh(new THREE.RingGeometry(0.015, 0.02, 16), new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.4, side: THREE.DoubleSide}));
+      persistentLinesGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curvePoints), new THREE.LineBasicMaterial({ color: r.accent, transparent: true, opacity: 0.65 })));
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.015, 0.02, 16), new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.8, side: THREE.DoubleSide}));
       ring.position.copy(endPos); ring.lookAt(0,0,0); persistentLinesGroup.add(ring);
-      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.005, 8, 8), new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.6}));
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.005, 8, 8), new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.9}));
       dot.position.copy(endPos); persistentLinesGroup.add(dot);
     });
   };
@@ -724,8 +763,7 @@ function toggleHUD() {
     const curve = new THREE.QuadraticBezierCurve3(startPos, midPos, endPos);
     
     const marker = new THREE.Group();
-    // ADD INVISIBLE HITBOX TO LAUNCHES FOR EASY CLICKING
-    const launchHitbox = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
+    const launchHitbox = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
     marker.add(launchHitbox);
 
     if(isLive) {
@@ -764,7 +802,6 @@ function toggleHUD() {
     setTimeout(window.processLaunchQueue, 8000);
   };
 
-  // INCREASED LINE THRESHOLD FOR EASY TRAIL CLICKING
   const raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.08; 
   const mouse = new THREE.Vector2(-10, -10);
   let drag=false, dragMoved=false, prevX=0, prevY=0;
@@ -775,11 +812,10 @@ function toggleHUD() {
   (function animate(){
     requestAnimationFrame(animate);
 
-    // TIME DILATION MECHANIC (Slows down rotation when hovering over target)
+    // TIME DILATION
     let targetTimeScale = (hoveredObject && !drag) ? 0.05 : 1.0;
     currentTimeScale += (targetTimeScale - currentTimeScale) * 0.1;
     
-    // Smooth camera tracking
     if (isSolarSystem && trackedPlanet) {
         let wp = new THREE.Vector3();
         trackedPlanet.getWorldPosition(wp);
@@ -801,7 +837,14 @@ function toggleHUD() {
     
     const now = new Date();
     moonOrbit.rotation.y += 0.002 * currentTimeScale;
+    
+    // Rotate Swarms dynamically
+    leoGroup.rotation.y += 0.001 * currentTimeScale; leoGroup.rotation.x += 0.0005 * currentTimeScale;
+    meoGroup.rotation.y += 0.0005 * currentTimeScale; meoGroup.rotation.z += 0.0002 * currentTimeScale;
+    geoGroup.rotation.y += 0.0002 * currentTimeScale;
+
     if(window.backgroundPlanets) { window.backgroundPlanets.forEach(p => { p.group.rotation.y += p.speed * currentTimeScale; }); }
+    if(window.asteroidBelt) window.asteroidBelt.rotation.y += 0.0003 * currentTimeScale;
 
     activeStations.forEach(st => {
       if (st.isStaticDeepSpace) return;
@@ -820,7 +863,7 @@ function toggleHUD() {
     });
 
     for (let i = activeLaunches.length - 1; i >= 0; i--) {
-      let l = activeLaunches[i]; l.t += (l.speed * currentTimeScale); // Apply time dilation
+      let l = activeLaunches[i]; l.t += (l.speed * currentTimeScale); 
       if (l.t >= 1) {
         globeMain.remove(l.marker); globeMain.remove(l.trail);
         if(l.isLive) { l.marker.children.forEach(c => { c.geometry.dispose(); c.material.dispose(); }); } 
@@ -834,10 +877,9 @@ function toggleHUD() {
       }
     }
 
-    // Reset Pad Highlights
     padGroup.children.forEach(c => { if(c.geometry.type === 'RingGeometry') c.scale.lerp(new THREE.Vector3(1,1,1), 0.1); });
       
-    hoveredObject = null; // Reset every frame
+    hoveredObject = null; 
     if (!drag) {
       raycaster.setFromCamera(mouse, camera);
       
@@ -853,7 +895,6 @@ function toggleHUD() {
         }
       } else if (viewMode === 0) {
         for (let i = 0; i < activeLaunches.length; i++) {
-          // Check intersection with trail and hitbox
           if (raycaster.intersectObjects([activeLaunches[i].trail, ...activeLaunches[i].marker.children]).length > 0) { hoveredObject = {type: 'launch', data: activeLaunches[i]}; break; }
         }
         if(!hoveredObject) {
@@ -906,7 +947,7 @@ function toggleHUD() {
     if(drag) {
         dragMoved = true;
         if(isSolarSystem) {
-            trackedPlanet = null; // Un-track if dragging around
+            trackedPlanet = null; 
             macroSolarGroup.rotation.y += (e.clientX-prevX)*0.004;
             macroSolarGroup.rotation.x = Math.max(-0.5,Math.min(0.5,macroSolarGroup.rotation.x+(e.clientY-prevY)*0.003));
         } else {
@@ -919,7 +960,7 @@ function toggleHUD() {
   
   el.addEventListener('click', function() {
     if (dragMoved) return; 
-    raycaster.setFromCamera(mouse, camera);
+    raycaster.setFromCamera(mouse, window.appCamera);
 
     if (viewMode === 0 && !isSolarSystem) {
       let clickedLaunch = null;
@@ -955,10 +996,8 @@ function toggleHUD() {
          let obj = hits[0].object; while(obj && !obj.userData.id) { obj = obj.parent; }
          if(obj && obj.userData.id) {
             
-            // Solar System Interactions
             if(isSolarSystem) {
                 if (obj.userData.id === 'earth') {
-                    // Revert to Orbital mode
                     isSolarSystem = false;
                     globeMain.visible = true;
                     macroSolarGroup.visible = false;
@@ -971,14 +1010,14 @@ function toggleHUD() {
                     trackingOffset = new THREE.Vector3(0, 5, 40);
                 } else {
                     trackedPlanet = obj;
-                    let rad = obj.geometry.parameters.radius;
-                    trackingOffset = new THREE.Vector3(rad * 2, rad * 2, rad * 7); // Dynamic zoom scale
+                    let rad = obj.geometry.parameters.radius || (obj.children[0] && obj.children[0].geometry.parameters.radius) || 2;
+                    trackingOffset = new THREE.Vector3(rad * 2, rad * 2, rad * 7); 
                 }
             }
 
             state.selectionType = 'satellite'; state.selectedId = obj.userData.id; state.agency = 'All'; 
             
-            if(!hudVisible && !isSolarSystem) toggleHUD(); // Only open HUD if we reverted to Earth
+            if(!hudVisible && !isSolarSystem) toggleHUD(); 
             let cmdPanel = document.getElementById('panel-command');
             if(cmdPanel.classList.contains('minimized')) toggleMinimize('panel-command');
             setCmdTab('intel'); render();
@@ -999,11 +1038,10 @@ function toggleHUD() {
       
       if(isSolarSystem) {
           dist = Math.max(10, Math.min(600, dist + e.deltaY * 0.5));
-          if(trackedPlanet) trackingOffset.setLength(dist); // Allows zooming in/out while tracking
+          if(trackedPlanet) trackingOffset.setLength(dist); 
       } else {
           dist += e.deltaY * 0.006;
           
-          // Triggers Transition to Solar System View when zooming far out
           if(viewMode === 1 && dist > 15) {
               isSolarSystem = true;
               globeMain.visible = false;
@@ -1020,7 +1058,7 @@ function toggleHUD() {
       dir.setLength(dist); 
       targetCamPos.copy(targetCamLook).add(dir);
   },{passive:true});
-  window.addEventListener('resize',function(){ camera.aspect = el.clientWidth/el.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(el.clientWidth, el.clientHeight); });
+  window.addEventListener('resize',function(){ window.appCamera.aspect = el.clientWidth/el.clientHeight; window.appCamera.updateProjectionMatrix(); renderer.setSize(el.clientWidth, el.clientHeight); });
 })();
 
 
@@ -1032,7 +1070,7 @@ function buildAgencyFilters() {
     let btn = document.createElement('button');
     btn.className = 'pill' + (a === state.agency ? ' active' : '');
     btn.style.padding = '6px 10px'; btn.style.fontSize = '10px'; btn.style.flexShrink = '0';
-    if (a === state.agency) { btn.style.background = 'rgba(255,255,255,0.15)'; btn.style.borderColor = 'rgba(255,255,255,0.3)'; btn.style.color = '#fff'; }
+    if (a === state.agency) { btn.style.background = 'rgba(56, 189, 248, 0.2)'; btn.style.borderColor = 'rgba(56, 189, 248, 0.5)'; btn.style.color = '#fff'; }
     btn.textContent = a;
     btn.onclick = () => {
       state.agency = a;
@@ -1228,12 +1266,13 @@ function buildLiveCommand() {
       f3L = 'Orbit'; f3V = s.orbit; f4L = 'Status'; f4V = 'Active';
     }
 
-    // Refactored UI structure for max readability
+    const fallbackSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNjAwIiBmaWxsPSIjMDkwZTFiIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiM0QURFODAiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPklNQUdFIE9GRkxJTkU8L3RleHQ+PC9zdmc+`;
+
     container.innerHTML = `
       <div id="vehicle-card-wrapper" style="display:flex; gap: 24px; padding: 20px; background: ${accent}10; border: 1px solid ${accent}40; border-radius: 8px; align-items:stretch;">
         <div style="flex: 0 0 140px; display:flex; flex-direction:column; gap:12px;">
              <div style="width: 100%; aspect-ratio: 2/3; border-radius:6px; overflow:hidden; border:2px solid ${accent}60; box-shadow: 0 0 20px rgba(0,0,0,0.6); background: #000; position:relative;">
-                 <img src="${img}" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;" onerror="this.style.display='none'" />
+                 <img src="${img}" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;" onerror="this.onerror=null; this.src='${fallbackSvg}';" />
                  <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, #010306, transparent); height:40px;"></div>
              </div>
              <div style="width:100%; text-align:center; font-size:10px; font-weight:bold; letter-spacing:2px; color:${accent}; background: rgba(0,0,0,0.5); padding:8px 0; border-radius:4px; border:1px solid ${accent}40; text-shadow: 0 1px 2px #000;">

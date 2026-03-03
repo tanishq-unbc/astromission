@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Astro Mission - Project Oceanus</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.1.3/satellite.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;background:#010306;overflow:hidden;color:#fff;font-family:monospace;}
+  #stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
+  #globe-mount{width:100%;height:100%;cursor:grab;}
+  #globe-mount:active{cursor:grabbing;}
+  button{font-family:monospace;outline:none;cursor:pointer;}
+  ::-webkit-scrollbar{width:3px; height:3px;} 
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+  @keyframes highlight{0%{transform:scale(0.98);box-shadow:0 0 0 transparent}50%{transform:scale(1.01);box-shadow:0 0 20px var(--accent-50)}100%{transform:scale(1);box-shadow:0 0 0 transparent}}
+  @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  
+  .panel{background:rgba(3,7,18,0.90);border:1px solid rgba(255,255,255,0.09);border-radius:10px;backdrop-filter:blur(24px);overflow:hidden;display:flex;flex-direction:column;}
+  .panel-hdr{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:9px;letter-spacing:4px;text-transform:uppercase;font-weight:700;}
+  
+  .pill{padding:6px 12px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;border-radius:4px;transition:all 0.15s;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);}
+  .pill.active{color:#fff;}
+  .pill:hover:not(.active){background:rgba(255,255,255,0.06);}
+  
+  .rocket-btn{text-align:left;padding:8px 10px;border-radius:6px;transition:all 0.2s;border:1px solid transparent;background:transparent;width:100%;position:relative;}
+  .rocket-btn.active{border-color:var(--accent-50)!important;background:var(--accent-10)!important;}
+  .rocket-btn:hover:not(.active){background:rgba(255,255,255,0.03);}
+  
+  .stat-card{padding:8px 10px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);}
+  .launch-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:5px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);}
+  
+  #agency-filters::-webkit-scrollbar { display: none; }
+  
+  #launch-tooltip {
+    position: fixed; background: rgba(3, 7, 18, 0.95); border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 14px; border-radius: 6px; font-family: monospace; pointer-events: none;
+    display: none; z-index: 100; backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    transform: translate(15px, 15px);
+  }
+
+  .crew-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+    gap: 10px; align-content: start;
+  }
+  .crew-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px; padding: 12px 8px; display: flex; flex-direction: column;
+    align-items: center; text-align: center; transition: all 0.2s;
+  }
+  .crew-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+  .crew-img {
+    width: 54px; height: 54px; border-radius: 50%; object-fit: cover;
+    margin-bottom: 8px; border: 2px solid var(--accent-50, #4A9EFF);
+  }
+
+  .view-toggle {
+    display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px;
+    transition: all 0.3s;
+  }
+  .view-toggle:hover { background: rgba(255,255,255,0.1); }
+  
+  .redacted { background: repeating-linear-gradient(45deg, #111, #111 10px, #222 10px, #222 20px); color: transparent !important; user-select: none; }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<div id="launch-tooltip"></div>
+
+<div id="app" style="height:100vh;display:flex;flex-direction:column;position:relative;z-index:1;animation:fadein 0.5s ease;">
+
+  <div id="globe-area" style="height:55%;flex-shrink:0;position:relative;overflow:hidden;">
+    <div id="globe-mount"></div>
+
+    <div id="header" style="position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:linear-gradient(to bottom,rgba(1,3,6,0.92) 0%,transparent 100%);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="logo-astro" style="font-size:22px;letter-spacing:6px;font-weight:900;">ASTRO</span>
+        <span style="font-size:22px;letter-spacing:6px;font-weight:900;color:rgba(255,255,255,0.18);">MISSION</span>
+        <span style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,0.3);margin-left:8px;">TACTICAL TELEMETRY</span>
+      </div>
+      
+      <div style="display:flex;align-items:center;gap:20px;">
+        <button id="view-toggle-btn" class="view-toggle" onclick="toggleGlobeView()">
+          <span id="view-icon" style="color:#F97316;">◎</span>
+          <span id="view-label" style="font-size:10px; letter-spacing:2px; font-weight:bold;">LAUNCH VIEW</span>
+        </button>
+        <div style="display:flex;align-items:center;gap:7px;border-left:1px solid rgba(255,255,255,0.1);padding-left:20px;">
+          <span id="status-dot" style="width:7px;height:7px;border-radius:50%;background:#22C55E;box-shadow:0 0 10px #22C55E;display:inline-block;animation:pulse 2s infinite;"></span>
+          <span id="status-txt" style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.45);">NETWORK NOMINAL</span>
+        </div>
+        <span id="utc-clock" style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.2);"></span>
+      </div>
+    </div>
+
+    <div style="position:absolute;bottom:14px;right:16px;z-index:20;display:flex;flex-direction:column;gap:4px;pointer-events:none;" id="legend"></div>
+
+    <div style="position:absolute;bottom:14px;left:16px;z-index:20;display:flex;gap:14px;pointer-events:none;" id="bottom-legend">
+      <div style="display:flex;align-items:center;gap:5px;"><span style="color:#4A9EFF;">▲</span><span style="font-size:9px;color:rgba(255,255,255,0.4);">Active Launches</span></div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <div style="width:10px; height:10px; border-radius:50%; border:1px solid #fff; opacity:0.6; display:flex; align-items:center; justify-content:center;"><div style="width:2px; height:2px; background:#fff; border-radius:50%;"></div></div>
+        <span style="font-size:9px;color:rgba(255,255,255,0.4);">Projected Corridors</span>
+      </div>
+    </div>
+
+    <div style="position:absolute;bottom:0;left:0;right:0;height:38%;background:linear-gradient(to top,#010306 0%,transparent 100%);pointer-events:none;z-index:10;"></div>
+  </div>
+
+  <div style="flex:1;min-height:0;display:flex;gap:10px;padding:8px 16px 14px;overflow:hidden;">
+    <div class="panel" style="flex-shrink:0;width:220px;">
+      <div class="panel-hdr" id="vehicle-hdr">Spacecraft Fleet</div>
+      <div id="agency-filters" style="display:flex; gap:4px; padding:8px 10px; overflow-x:auto; border-bottom:1px solid rgba(255,255,255,0.05);"></div>
+      <div id="rocket-list" style="flex:1;padding:8px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+
+    <div class="panel" style="flex-shrink:0;width:220px;">
+      <div class="panel-hdr" id="telem-hdr">Capabilities</div>
+      <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="stat-grid"></div>
+        <div id="perf-bars" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <div class="panel" style="flex-shrink:0;width:280px;">
+      <div class="panel-hdr" style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:9px;letter-spacing:4px;color:rgba(255,255,255,0.35);text-transform:uppercase;font-weight:700;">Schedule</span>
+        <span style="width:6px;height:6px;border-radius:50%;background:#F97316;box-shadow:0 0 8px #F97316;display:inline-block;animation:pulse 1.2s infinite;"></span>
+      </div>
+      <div id="next-hero" style="padding:12px 14px;"></div>
+      <div id="launch-list" style="flex:1;padding:6px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+
+    <div class="panel" style="flex:1;min-width:0;">
+      <div class="panel-hdr" style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;">
+        <span id="ctrl-hdr" style="font-size:11px;">Live Command</span>
+        <div style="display:flex;gap:5px;" id="cmd-tabs">
+           <button class="pill active" onclick="setCmdTab('intel')">ASSET INTEL</button>
+           <button class="pill" onclick="setCmdTab('crew')">STATION CREW</button>
+        </div>
+      </div>
+      <div id="cmd-content" style="flex:1;padding:14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA DICTIONARIES
+// ═══════════════════════════════════════════════════════
+const ROCKETS = [
+  {id:'falcon-9', agency:'SpaceX', name:'Falcon 9', maker:'SpaceX', accent:'#4A9EFF', tag:'Workhorse of orbit', height:70, baseThrust:7607, baseFuelMass:549, baseCost:67, maxCrew:4, reusable:true, firstFlight:'2010', description:'A reusable, two-stage rocket designed for the reliable transport of people and payloads.', cap:{LEO:22800,GTO:8300}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/falcon_9_image_20230807133459.jpeg'},
+  {id:'starship', agency:'SpaceX', name:'Starship', maker:'SpaceX', accent:'#FF8C42', tag:'The Mars machine', height:121, baseThrust:74400, baseFuelMass:4600, baseCost:100, maxCrew:100, reusable:true, firstFlight:'2023', description:'A fully reusable transport system designed to carry both crew and cargo to Earth orbit, the Moon, and Mars.', cap:{LEO:150000,GTO:100000}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/starship_image_20231110111145.jpeg'},
+  {id:'sls', agency:'NASA', name:'SLS', maker:'Boeing', accent:'#FFD166', tag:'Artemis Moon Rocket', height:98, baseThrust:39000, baseFuelMass:2600, baseCost:2000, maxCrew:4, reusable:false, firstFlight:'2022', description:'The Space Launch System is a super heavy-lift expendable launch vehicle for deep space exploration.', cap:{LEO:95000,GTO:27000}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/space_launch_sy_image_20220331082429.jpeg'},
+  {id:'atlas-v', agency:'ULA', name:'Atlas V', maker:'ULA', accent:'#3B82F6', tag:'Reliable Workhorse', height:58, baseThrust:3827, baseFuelMass:305, baseCost:109, maxCrew:2, reusable:false, firstFlight:'2002', description:'An expendable launch vehicle that has been a mainstay of US military and scientific launches.', cap:{LEO:18814,GTO:8900}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/atlas_v_image_20201212013334.jpeg'},
+  {id:'ariane-6', agency:'ESA', name:'Ariane 6', maker:'ArianeGroup', accent:'#06D6F5', tag:'Europe to orbit', height:63, baseThrust:13400, baseFuelMass:530, baseCost:115, maxCrew:0, reusable:false, firstFlight:'2024', description:'A European expendable launch system currently under development, intended to replace the Ariane 5.', cap:{LEO:21650,GTO:11500}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/ariane_62_lifto_image_20240711132056.jpeg'},
+  {id:'soyuz', agency:'Roscosmos', name:'Soyuz-2', alias:'Soyuz', maker:'Progress', accent:'#E74C3C', tag:'Russian workhorse', height:46, baseThrust:4140, baseFuelMass:277, baseCost:45, maxCrew:3, reusable:false, firstFlight:'2004', description:'The legendary family of expendable Russian launch systems.', cap:{LEO:8200,GTO:3250}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/soyuz25202.1a_image_20190726062341.jpg'},
+  {id:'pslv', agency:'ISRO', name:'PSLV', maker:'ISRO', accent:'#FF8C42', tag:'Polar sat launcher', height:44, baseThrust:4800, baseFuelMass:320, baseCost:21, maxCrew:0, reusable:false, firstFlight:'1993', description:'The Polar Satellite Launch Vehicle is an expendable medium-lift launch vehicle operated by ISRO.', cap:{LEO:3800,GTO:1200}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/pslv_image_20190224012254.jpeg'},
+  {id:'lm5', agency:'CNSA', name:'Long March 5', alias:'CZ-5', maker:'CALT', accent:'#22C55E', tag:'Heavy lifter', height:57, baseThrust:10565, baseFuelMass:860, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2016', description:'A Chinese heavy-lift launch vehicle capable of delivering heavy payloads to LEO, the Moon, and Mars.', cap:{LEO:25000,GTO:14000}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/long_march_5_image_20231214064353.jpeg'},
+  {id:'electron', agency:'RocketLab', name:'Electron', maker:'Rocket Lab', accent:'#F97316', tag:'Small sat launcher', height:18, baseThrust:224, baseFuelMass:12, baseCost:7, maxCrew:0, reusable:true, firstFlight:'2017', description:'Dedicated small orbital launch vehicle for cube sats.', cap:{LEO:300,GTO:0}, image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/electron_image_20190705162646.jpeg'}
+];
+
+const SATELLITES = [
+  // LEO
+  {id:'iss', name: 'International Space Station', type: 'Orbital Station', class: 'public', agency: 'NASA/Roscosmos/ESA/JAXA', mass: 450000, orbit: 'LEO', speed: 27600, firstFlight: '1998', description: 'A modular space station in low Earth orbit. It is a multinational collaborative project involving multiple space agencies.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/international2520space2520station_image_20190220215716.jpeg', color: '#ffffff'},
+  {id:'tiangong', name: 'Tiangong Space Station', type: 'Orbital Station', class: 'public', agency: 'CNSA', mass: 100000, orbit: 'LEO', speed: 27600, firstFlight: '2021', description: 'A space station constructed by China in low Earth orbit between 340 and 450 km above the surface.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/tiangong_image_20231031004146.png', color: '#22C55E'},
+  {id:'hubble', name: 'Hubble Space Telescope', type: 'Space Telescope', class: 'public', agency: 'NASA/ESA', mass: 11110, orbit: 'LEO', speed: 27300, firstFlight: '1990', description: 'A space telescope that was launched into low Earth orbit in 1990 and remains in operation.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/hubble2520space2520telescope_image_20190222030955.jpeg', color: '#A78BFA'},
+  {id:'starlink', name: 'Starlink Constellation', type: 'Communications Network', class: 'public', agency: 'SpaceX', mass: 260, orbit: 'LEO', speed: 27000, firstFlight: '2019', description: 'A satellite internet constellation operated by SpaceX, providing satellite Internet access coverage to most of the Earth.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/starlink_image_20231120150338.jpeg', color: '#4A9EFF'},
+  // MEO
+  {id:'gps', name: 'GPS Block III', type: 'Navigation', class: 'public', agency: 'US Space Force', mass: 3880, orbit: 'MEO', speed: 13900, firstFlight: '2018', description: 'The newest generation of Global Positioning System satellites, providing three times better accuracy and up to eight times improved anti-jamming capabilities.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20230113091016.jpeg', color: '#3B82F6'},
+  {id:'galileo', name: 'Galileo Constellation', type: 'Navigation', class: 'public', agency: 'ESA', mass: 733, orbit: 'MEO', speed: 13200, firstFlight: '2011', description: 'Europe’s own global navigation satellite system, providing a highly accurate, guaranteed global positioning service under civilian control.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/soyuz25202.1b_image_20211201080649.jpg', color: '#06D6F5'},
+  // GEO
+  {id:'goes', name: 'GOES-18', type: 'Weather Observation', class: 'public', agency: 'NOAA / NASA', mass: 5192, orbit: 'GEO', speed: 11050, firstFlight: '2022', description: 'Provides advanced imagery and atmospheric measurements of Earth’s weather, oceans and environment, mapping lightning activity, and monitoring solar activity.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/atlas2520v252_image_20220224083652.jpeg', color: '#FFD166'},
+  {id:'syracuse', name: 'Syracuse 4A', type: 'Military Comms', class: 'public', agency: 'French MoD', mass: 3800, orbit: 'GEO', speed: 11050, firstFlight: '2021', description: 'A French military communications satellite designed to resist extreme jamming methods and electromagnetic pulses.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/ariane2520525_image_20211022135606.jpeg', color: '#06D6F5'},
+  // HEO / DEEP SPACE
+  {id:'chandra', name: 'Chandra X-ray', type: 'Space Telescope', class: 'public', agency: 'NASA', mass: 4800, orbit: 'HEO', speed: 25000, firstFlight: '1999', description: 'A Flagship-class space telescope launched on STS-93. Its highly elliptical orbit allows it to observe X-rays from high-energy regions of the universe.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/space_shuttle_c_image_20240306132717.jpeg', color: '#A78BFA'},
+  {id:'jwst', name: 'James Webb Space Telescope', type: 'Deep Space Observatory', class: 'public', agency: 'NASA / ESA / CSA', mass: 6161, orbit: 'L2 Halo', speed: 1000, firstFlight: '2021', description: 'The largest optical telescope in space, equipped with high-resolution and highly sensitive instruments to view objects too old, distant, or faint for the Hubble.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/ariane2520525_image_20211222091720.jpeg', color: '#FFD166'},
+  // CLASSIFIED
+  {id:'usa326', name: 'USA-326 / NROL-87', type: 'Reconnaissance', class: 'classified', agency: 'NRO (USA)', mass: 0, orbit: 'LEO', speed: 27500, firstFlight: '2022', description: '[ CLASSIFIED NRO ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20220202080345.jpeg', color: '#EF4444'},
+  {id:'kosmos', name: 'Kosmos 2558', type: 'Reconnaissance', class: 'classified', agency: 'Russian MoD', mass: 0, orbit: 'SSO', speed: 27400, firstFlight: '2022', description: '[ CLASSIFIED RUSSIAN ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/soyuz-2.1v_image_20191122081651.jpg', color: '#EF4444'},
+  // HISTORICAL
+  {id:'vanguard', name: 'Vanguard 1', type: 'Historical Relic', class: 'public', agency: 'US Navy', mass: 1.47, orbit: 'MEO', speed: 25000, firstFlight: '1958', description: 'The fourth artificial Earth orbital satellite launched. It is the oldest human-made object still in orbit. Communication was lost in 1964.', image: 'https://spacelaunchnow-prod-east.nyc3.digitaloceanspaces.com/media/images/vanguard_1_on_p_image_20240411114304.jpeg', color: '#aaaaaa'}
+];
+
+const AGENCIES = ['All', 'SpaceX', 'NASA', 'ULA', 'ESA', 'Roscosmos', 'ISRO', 'CNSA', 'RocketLab'];
+const S_AGENCIES = ['All', 'NASA', 'ESA', 'Roscosmos', 'SpaceX', 'CNSA', 'Military', 'Relic'];
+
+let PADS = [
+  {id:'slc40', lat:28.56, lng:-80.58, color:'#4A9EFF'}, {id:'lc39a', lat:28.61, lng:-80.60, color:'#4A9EFF'},
+  {id:'vafb', lat:34.63, lng:-120.61, color:'#4A9EFF'}, {id:'kourou', lat:5.24, lng:-52.77, color:'#06D6F5'},
+  {id:'baikonur', lat:45.92, lng:63.34, color:'#E74C3C'}, {id:'vostochny', lat:51.88, lng:128.33, color:'#E74C3C'},
+  {id:'satish', lat:13.73, lng:80.24, color:'#FF8C42'}, {id:'jiuquan', lat:40.96, lng:100.29, color:'#22C55E'},
+  {id:'wenchang', lat:19.61, lng:110.95, color:'#22C55E'}, {id:'mahia', lat:-39.26, lng:177.86, color:'#F97316'}
+];
+
+const AGENCY_COLORS = {SpaceX:'#4A9EFF',NASA:'#FFD166',ULA:'#3B82F6',ESA:'#06D6F5',Roscosmos:'#E74C3C',ISRO:'#FF8C42',JAXA:'#A78BFA',CNSA:'#22C55E',RocketLab:'#F97316'};
+
+let UPCOMING = [];
+let ACTIVE_CREW = [];
+let historicalLaunches = []; 
+let currentCmdTab = 'intel';
+let globeViewMode = 'launch'; 
+
+const TLE_DATA = {
+  iss: ["1 25544U 98067A   26060.12345678  .00016717  00000-0  30000-3 0  9999", "2 25544  51.6419 233.1534 0005273  56.3214 303.8821 15.49815325567890"],
+  tiangong: ["1 48274U 21035A   26060.23456789  .00012345  00000-0  20000-3 0  9998", "2 48274  41.4746 123.4567 0002134 112.3456 247.6543 15.61234567234567"],
+  hubble: ["1 20580U 90037B   26060.12345678  .00001234  00000-0  10000-4 0  9994", "2 20580  28.4690 123.4567 0002845 112.3456 247.6543 15.09234567123456"],
+  starlink: ["1 44235U 19029A   26060.00000000  .00000000  00000-0  00000-0 0  9999", "2 44235  53.0000   0.0000 0001000   0.0000   0.0000 15.05000000    10"],
+  gps: ["1 43873U 18109A   26060.12345678 -.00000023  00000-0  00000-0 0  9991", "2 43873  55.3054 120.4567 0003456 123.4567 234.5678  2.00567890 23456"],
+  galileo: ["1 43055U 17079A   26060.12345678 -.00000012  00000-0  00000-0 0  9995", "2 43055  56.0000 150.4567 0002000  50.4567 123.4567  1.70456789 21345"],
+  goes: ["1 51850U 22021A   26060.12345678  .00000123  00000-0  00000-0 0  9993", "2 51850   0.0214 270.4567 0001234  12.4567 345.6789  1.00270000 12345"],
+  syracuse: ["1 49334U 21095B   26060.12345678  .00000111  00000-0  00000-0 0  9992", "2 49334   0.0500 180.4567 0001000  45.4567 213.4567  1.00270000 11111"],
+  chandra: ["1 25867U 99040B   26060.12345678  .00000123  00000-0  00000-0 0  9990", "2 25867  76.4567  90.4567 7501234 180.4567 180.4567  0.35456789 45678"],
+  usa326: ["1 51445U 22009A   26060.12345678  .00012345  00000-0  12345-3 0  9998", "2 51445  97.4567 123.4567 0012345 123.4567 234.5678 14.85678901 12345"],
+  kosmos: ["1 53323U 22093A   26060.12345678  .00012345  00000-0  12345-3 0  9997", "2 53323  97.4567 234.5678 0012345 234.5678 345.6789 14.85678901 12345"],
+  vanguard: ["1 00005U 58002B   26060.12345678  .00012345  00000-0  12345-3 0  9996", "2 00005  34.2500 123.4567 1845678 123.4567 234.5678 10.85678901 12345"]
+};
+
+let state = {selectionType: 'rocket', selectedId: 'falcon-9', agency: 'All'};
+
+async function fetchAllData() {
+  try {
+    const [upRes, evRes, pastRes, crewRes] = await Promise.allSettled([
+      fetch('https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=6'),
+      fetch('https://lldev.thespacedevs.com/2.2.0/event/upcoming/?limit=3'),
+      fetch('https://lldev.thespacedevs.com/2.2.0/launch/previous/?limit=30'),
+      fetch('https://lldev.thespacedevs.com/2.2.0/astronaut/?in_space=true')
+    ]);
+
+    if (upRes.status === 'fulfilled') {
+      const upData = await upRes.value.json();
+      if (upData.results) {
+        let l = upData.results.map(launch => ({
+          id: launch.id, name: launch.name.split('|')[1]?.trim() || launch.name,
+          vehicle: launch.rocket?.configuration?.name || 'Unknown', pad: launch.pad?.location?.name || launch.pad?.name || 'Unknown',
+          agency: launch.launch_service_provider?.name || 'Unknown', dest: launch.mission?.orbit?.abbrev || 'LEO',
+          t: new Date(launch.net).getTime(), type: 'launch'
+        }));
+        UPCOMING.push(...l);
+      }
+    }
+
+    if (evRes.status === 'fulfilled') {
+      const evData = await evRes.value.json();
+      if (evData.results) {
+        let e = evData.results.map(ev => ({
+          id: ev.id, name: ev.name, vehicle: ev.type?.name || 'Space Event',
+          pad: ev.location || 'Orbital', agency: ev.agencies?.[0]?.abbrev || 'Space',
+          dest: 'Orbit', t: new Date(ev.date).getTime(), type: 'event'
+        }));
+        UPCOMING.push(...e);
+      }
+    }
+
+    if (pastRes.status === 'fulfilled') {
+      const pastData = await pastRes.value.json();
+      if (pastData.results) {
+        let diverseLaunches = []; let agencyCounts = {};
+        pastData.results.forEach(launch => {
+          let agency = launch.launch_service_provider?.name || 'Unknown';
+          if (!agencyCounts[agency]) agencyCounts[agency] = 0;
+          if (agencyCounts[agency] < 5) {
+            agencyCounts[agency]++;
+            let lat = parseFloat(launch.pad?.latitude); let lng = parseFloat(launch.pad?.longitude);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              if (!PADS.find(p => p.id === launch.pad?.id)) { PADS.push({ id: launch.pad.id, lat: lat, lng: lng, color: AGENCY_COLORS[agency] || '#ffffff' }); }
+              diverseLaunches.push({ name: launch.name.split('|')[1]?.trim() || launch.name, vehicle: launch.rocket?.configuration?.name || 'Unknown', agency: agency, dest: launch.mission?.orbit?.abbrev || 'LEO', lat: lat, lng: lng });
+            }
+          }
+        });
+        historicalLaunches = diverseLaunches.sort(() => Math.random() - 0.5);
+      }
+    }
+
+    if (crewRes.status === 'fulfilled') {
+      const crewData = await crewRes.value.json();
+      if (crewData.results && crewData.results.length > 0) {
+        ACTIVE_CREW = crewData.results.map(c => ({ name: c.name, agency: c.agency?.abbrev || c.agency?.name || 'Unknown', nationality: c.nationality, image: c.profile_image_thumbnail }));
+      } else { ACTIVE_CREW = FALLBACK_CREW; }
+    } else { ACTIVE_CREW = FALLBACK_CREW; }
+
+  } catch (error) { ACTIVE_CREW = FALLBACK_CREW; }
+  
+  if(window.drawPads) window.drawPads();
+  buildUpcoming(); buildLiveCommand(); processLaunchQueue();
+}
+
+fetchAllData();
+
+// ═══════════════════════════════════════════════════════
+// STARS CANVAS
+// ═══════════════════════════════════════════════════════
+(function(){
+  const cv=document.getElementById('stars'),ctx=cv.getContext('2d');
+  const stars=[];
+  function resize(){cv.width=innerWidth;cv.height=innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+  for(let i=0;i<260;i++) stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.2+0.2,a:Math.random(),da:(Math.random()-0.5)*0.007});
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    stars.forEach(s=>{
+      s.a=Math.max(0.05,Math.min(1,s.a+s.da));
+      if(s.a<=0.05||s.a>=1)s.da*=-1;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+})();
+
+// ═══════════════════════════════════════════════════════
+// THREE.JS GLOBE
+// ═══════════════════════════════════════════════════════
+const padGroup = new THREE.Group(); 
+const orbitGroup = new THREE.Group(); 
+orbitGroup.visible = false; 
+const interactableOrbitals = []; 
+
+(function initGlobe(){
+  const el=document.getElementById('globe-mount');
+  const W=el.clientWidth, H=el.clientHeight;
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(50,W/H,0.1,100);
+  camera.position.set(0,1.0,2.6); camera.lookAt(0,0.2,0);
+
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setSize(W,H); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setClearColor(0,0); el.appendChild(renderer.domElement);
+
+  const globe=new THREE.Group(); scene.add(globe);
+  globe.add(padGroup);
+  globe.add(orbitGroup);
+
+  const loader=new THREE.TextureLoader();
+  loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png',
+    function(tex){ globe.add(new THREE.Mesh(new THREE.SphereGeometry(1,64,64), new THREE.MeshPhongMaterial({map:tex, specular: new THREE.Color(0x000000), shininess: 0}))); },
+    undefined,
+    function(){ globe.add(new THREE.Mesh(new THREE.SphereGeometry(1,64,64), new THREE.MeshPhongMaterial({color:0x0a1628,emissive:0x050c14,shininess:20}))); }
+  );
+
+  [{r:1.01,c:0x3a8fff,o:0.15},{r:1.03,c:0x2266cc,o:0.08},{r:1.06,c:0x0d44aa,o:0.04}].forEach(function(a){
+    globe.add(new THREE.Mesh(new THREE.SphereGeometry(a.r,48,48), new THREE.MeshPhongMaterial({color:a.c,transparent:true,opacity:a.o,side:THREE.FrontSide})));
+  });
+  globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.08,48,48), new THREE.MeshBasicMaterial({color:0x1a5aff,transparent:true,opacity:0.05,side:THREE.BackSide})));
+
+  var sun=new THREE.DirectionalLight(0xfff8e8,1.5); sun.position.set(5,3,4); scene.add(sun);
+  scene.add(new THREE.AmbientLight(0x060d1a,0.6));
+  var rim=new THREE.DirectionalLight(0x1a44cc,0.8); rim.position.set(-5,0,-3); scene.add(rim);
+
+  function ll2v(lat,lng,r){
+    var phi=(90-lat)*Math.PI/180, theta=(lng+180)*Math.PI/180;
+    return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta));
+  }
+
+  window.drawPads = function() {
+    PADS.forEach(function(pad){
+      if(pad.drawn) return;
+      var pos=ll2v(pad.lat,pad.lng,1.012);
+      var mat=new THREE.MeshBasicMaterial({color:new THREE.Color(pad.color),transparent:true,opacity:0.4,side:THREE.DoubleSide});
+      var ring=new THREE.Mesh(new THREE.RingGeometry(0.012,0.016,18),mat);
+      ring.position.copy(pos); ring.lookAt(pos.clone().multiplyScalar(2)); 
+      padGroup.add(ring);
+      pad.drawn = true;
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ORBITAL ASSET MESHES
+  // ═══════════════════════════════════════════════════════
+  function makeStationMesh(color, id){
+    var g=new THREE.Group(), c=new THREE.Color(color);
+    g.userData = { id: id };
+    var core = new THREE.Mesh(new THREE.CylinderGeometry(0.010,0.010,0.020,10),new THREE.MeshPhongMaterial({color:c,emissive:c,emissiveIntensity:0.5}));
+    g.add(core); interactableOrbitals.push(core);
+    [[-1,0],[1,0],[0,-1],[0,1]].forEach(function(xz){
+      var p=new THREE.Mesh(new THREE.BoxGeometry(0.034,0.001,0.011),new THREE.MeshPhongMaterial({color:0x1a3a6a}));
+      p.position.set(xz[0]*0.028,0,xz[1]*0.028); g.add(p);
+      interactableOrbitals.push(p);
+    });
+    orbitGroup.add(g); return g;
+  }
+
+  function makeTelescopeMesh(color, id){
+    var g=new THREE.Group(), c=new THREE.Color(color);
+    g.userData = { id: id };
+    var core = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.025,12),new THREE.MeshPhongMaterial({color:c,emissive:c,emissiveIntensity:0.5}));
+    g.add(core); interactableOrbitals.push(core);
+    var p=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.001,0.01),new THREE.MeshPhongMaterial({color:0x1a3a6a}));
+    g.add(p); interactableOrbitals.push(p);
+    orbitGroup.add(g); return g;
+  }
+
+  function makeNavMesh(color, id){
+    var g=new THREE.Group(); g.userData = { id: id };
+    var core = new THREE.Mesh(new THREE.OctahedronGeometry(0.015),new THREE.MeshPhongMaterial({color:new THREE.Color(color),emissive:new THREE.Color(color),emissiveIntensity:0.6}));
+    g.add(core); interactableOrbitals.push(core);
+    orbitGroup.add(g); return g;
+  }
+
+  function makeGeoMesh(color, id){
+    var g=new THREE.Group(); g.userData = { id: id };
+    var core = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.02,0.02),new THREE.MeshPhongMaterial({color:new THREE.Color(color),emissive:new THREE.Color(color),emissiveIntensity:0.5}));
+    g.add(core); interactableOrbitals.push(core);
+    var p=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.002,0.01),new THREE.MeshPhongMaterial({color:0x1a3a6a}));
+    g.add(p); interactableOrbitals.push(p);
+    orbitGroup.add(g); return g;
+  }
+
+  function makeSpyMesh(color, id){
+    var g=new THREE.Group(); g.userData = { id: id };
+    var core = new THREE.Mesh(new THREE.ConeGeometry(0.015,0.04,4),new THREE.MeshPhongMaterial({color:new THREE.Color(color),emissive:new THREE.Color(color),emissiveIntensity:0.8}));
+    g.add(core); interactableOrbitals.push(core);
+    orbitGroup.add(g); return g;
+  }
+
+  function makeGhostMesh(color, id){
+    var g=new THREE.Group(); g.userData = { id: id };
+    var core = new THREE.Mesh(new THREE.SphereGeometry(0.008,4,4),new THREE.MeshBasicMaterial({color:new THREE.Color(color),transparent:true,opacity:0.4,wireframe:true}));
+    g.add(core); interactableOrbitals.push(core);
+    orbitGroup.add(g); return g;
+  }
+
+  function makeStarlinkTrain(color, id, count) {
+    var g = new THREE.Group(); g.userData = { id: id };
+    for(let i=0; i<count; i++) {
+        var dot = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.002, 0.004), new THREE.MeshBasicMaterial({color: color}));
+        dot.userData = { id: id }; g.add(dot); interactableOrbitals.push(dot);
+    }
+    orbitGroup.add(g); return g;
+  }
+  
+  function makeDeepSpacePointer(color, id) {
+     var g = new THREE.Group(); g.userData = { id: id };
+     var dir = new THREE.Vector3(-1, -0.5, -0.8).normalize(); // Pointing towards L2
+     var origin = dir.clone().multiplyScalar(2.0); // Start way out
+     
+     var pts = [origin, origin.clone().add(dir.clone().multiplyScalar(10.0))];
+     var line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({color: color, transparent: true, opacity: 0.8}));
+     g.add(line);
+     
+     var labelCore = new THREE.Mesh(new THREE.OctahedronGeometry(0.04), new THREE.MeshBasicMaterial({color: color, wireframe:true}));
+     labelCore.position.copy(origin);
+     g.add(labelCore); interactableOrbitals.push(labelCore);
+     
+     orbitGroup.add(g); return g;
+  }
+
+  const activeStations = [
+    { id: 'iss', satrec: satellite.twoline2satrec(TLE_DATA.iss[0], TLE_DATA.iss[1]), mesh: makeStationMesh('#ffffff', 'iss') },
+    { id: 'tiangong', satrec: satellite.twoline2satrec(TLE_DATA.tiangong[0], TLE_DATA.tiangong[1]), mesh: makeStationMesh('#22C55E', 'tiangong') },
+    { id: 'hubble', satrec: satellite.twoline2satrec(TLE_DATA.hubble[0], TLE_DATA.hubble[1]), mesh: makeTelescopeMesh('#A78BFA', 'hubble') },
+    { id: 'starlink', satrec: satellite.twoline2satrec(TLE_DATA.starlink[0], TLE_DATA.starlink[1]), mesh: makeStarlinkTrain('#4A9EFF', 'starlink', 15), isTrain: true, offsetMs: 2500 },
+    { id: 'gps', satrec: satellite.twoline2satrec(TLE_DATA.gps[0], TLE_DATA.gps[1]), mesh: makeNavMesh('#3B82F6', 'gps') },
+    { id: 'galileo', satrec: satellite.twoline2satrec(TLE_DATA.galileo[0], TLE_DATA.galileo[1]), mesh: makeNavMesh('#06D6F5', 'galileo') },
+    { id: 'goes', satrec: satellite.twoline2satrec(TLE_DATA.goes[0], TLE_DATA.goes[1]), mesh: makeGeoMesh('#FFD166', 'goes') },
+    { id: 'syracuse', satrec: satellite.twoline2satrec(TLE_DATA.syracuse[0], TLE_DATA.syracuse[1]), mesh: makeGeoMesh('#06D6F5', 'syracuse') },
+    { id: 'chandra', satrec: satellite.twoline2satrec(TLE_DATA.chandra[0], TLE_DATA.chandra[1]), mesh: makeTelescopeMesh('#A78BFA', 'chandra') },
+    { id: 'usa326', satrec: satellite.twoline2satrec(TLE_DATA.usa326[0], TLE_DATA.usa326[1]), mesh: makeSpyMesh('#EF4444', 'usa326') },
+    { id: 'kosmos', satrec: satellite.twoline2satrec(TLE_DATA.kosmos[0], TLE_DATA.kosmos[1]), mesh: makeSpyMesh('#EF4444', 'kosmos') },
+    { id: 'vanguard', satrec: satellite.twoline2satrec(TLE_DATA.vanguard[0], TLE_DATA.vanguard[1]), mesh: makeGhostMesh('#aaaaaa', 'vanguard') },
+    { id: 'jwst', isStaticDeepSpace: true, mesh: makeDeepSpacePointer('#FFD166', 'jwst') }
+  ];
+
+  // Procedural Satellite Swarm
+  const satCount = 1200;
+  const satGeo = new THREE.BufferGeometry();
+  const satPos = new Float32Array(satCount * 3);
+  const satData = [];
+  for(let i=0; i<satCount; i++) {
+      let r = 1.08 + Math.random() * 0.15; 
+      let inc = Math.random() * Math.PI; 
+      let theta = Math.random() * Math.PI * 2;
+      let speed = (0.003 + Math.random() * 0.008) * (Math.random() > 0.5 ? 1 : -1);
+      satData.push({r, inc, theta, speed});
+  }
+  satGeo.setAttribute('position', new THREE.BufferAttribute(satPos, 3));
+  const satMat = new THREE.PointsMaterial({color: 0x88bbff, size: 0.003, transparent: true, opacity: 0.6});
+  const satPoints = new THREE.Points(satGeo, satMat);
+  orbitGroup.add(satPoints);
+
+  // ═══════════════════════════════════════════════════════
+  // VIEW TOGGLE LOGIC
+  // ═══════════════════════════════════════════════════════
+  window.toggleGlobeView = function() {
+    globeViewMode = globeViewMode === 'launch' ? 'orbital' : 'launch';
+    const btn = document.getElementById('view-toggle-btn');
+    const icon = document.getElementById('view-icon');
+    const label = document.getElementById('view-label');
+    const legend = document.getElementById('bottom-legend');
+    const fleetHdr = document.getElementById('vehicle-hdr');
+
+    if (globeViewMode === 'orbital') {
+      btn.style.background = 'rgba(255,255,255,0.15)'; btn.style.borderColor = '#A78BFA';
+      icon.textContent = '✧'; icon.style.color = '#A78BFA'; label.textContent = 'ORBITAL VIEW';
+      padGroup.visible = false; persistentLinesGroup.visible = false; orbitGroup.visible = true;
+      fleetHdr.textContent = 'Orbital Assets';
+      
+      legend.innerHTML = `
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#88bbff; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.4);">Satellite Swarm</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#A78BFA;">■</span><span style="font-size:9px;color:rgba(255,255,255,0.4);">Telescopes</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#3B82F6;">♦</span><span style="font-size:9px;color:rgba(255,255,255,0.4);">Navigation</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#EF4444;">▲</span><span style="font-size:9px;color:rgba(255,255,255,0.4);">Classified</span></div>
+      `;
+
+      state.selectionType = 'satellite';
+      state.selectedId = SATELLITES[0].id;
+      state.agency = 'All'; 
+      // Zoom out to see MEO/GEO
+      camera.position.setLength(5.0);
+    } else {
+      btn.style.background = 'rgba(255,255,255,0.05)'; btn.style.borderColor = 'rgba(255,255,255,0.2)';
+      icon.textContent = '◎'; icon.style.color = '#F97316'; label.textContent = 'LAUNCH VIEW';
+      padGroup.visible = true; persistentLinesGroup.visible = true; orbitGroup.visible = false;
+      fleetHdr.textContent = 'Spacecraft Fleet';
+      
+      legend.innerHTML = `
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#4A9EFF;">▲</span><span style="font-size:9px;color:rgba(255,255,255,0.4);">Active Launches</span></div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:10px; height:10px; border-radius:50%; border:1px solid #fff; opacity:0.6; display:flex; align-items:center; justify-content:center;"><div style="width:2px; height:2px; background:#fff; border-radius:50%;"></div></div>
+          <span style="font-size:9px;color:rgba(255,255,255,0.4);">Projected Corridors</span>
+        </div>
+      `;
+
+      state.selectionType = 'rocket';
+      state.selectedId = ROCKETS[0].id;
+      state.agency = 'All'; 
+      if(window.updatePersistentLines) window.updatePersistentLines(state.selectedId);
+      // Zoom back in for LEO/Surface
+      camera.position.setLength(2.6);
+    }
+    
+    setCmdTab('intel');
+    render();
+  };
+
+  // ═══════════════════════════════════════════════════════
+  // PERSISTENT TACTICAL PROJECTIONS
+  // ═══════════════════════════════════════════════════════
+  const persistentLinesGroup = new THREE.Group();
+  globe.add(persistentLinesGroup);
+
+  window.updatePersistentLines = function(rocketId) {
+    while(persistentLinesGroup.children.length > 0){
+      let child = persistentLinesGroup.children[0];
+      persistentLinesGroup.remove(child);
+      if(child.geometry) child.geometry.dispose();
+      if(child.material) child.material.dispose();
+    }
+
+    let r = ROCKETS.find(r => r.id === rocketId);
+    if(!r) return;
+    
+    let agencyPads = PADS.filter(p => p.color === AGENCY_COLORS[r.agency] || (r.agency==='ULA' && p.color==='#3B82F6')); 
+    if(agencyPads.length === 0) agencyPads = [PADS[0]];
+
+    agencyPads.forEach((pad, index) => {
+      const startPos = ll2v(pad.lat, pad.lng, 1.012);
+      let altTarget = 1.25 + (index * 0.05); 
+      let az = (r.tag.includes('Polar') || r.tag.includes('Small')) ? 180 : 90;
+      const endLat = pad.lat + (az === 180 ? -30 : 10) + (Math.random() * 10 - 5);
+      const endLng = pad.lng + (az === 90 ? 40 : 0) + (Math.random() * 10 - 5);
+      const endPos = ll2v(endLat, endLng, altTarget);
+      const midPos = startPos.clone().lerp(endPos, 0.5).normalize().multiplyScalar(altTarget * 1.05);
+      const curve = new THREE.QuadraticBezierCurve3(startPos, midPos, endPos);
+      const curvePoints = curve.getPoints(100);
+      const trailGeo = new THREE.BufferGeometry().setFromPoints(curvePoints);
+      const trailMat = new THREE.LineBasicMaterial({ color: r.accent, transparent: true, opacity: 0.35 });
+      const trail = new THREE.Line(trailGeo, trailMat);
+      persistentLinesGroup.add(trail);
+
+      const ringGeo = new THREE.RingGeometry(0.015, 0.02, 16);
+      const ringMat = new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.4, side: THREE.DoubleSide});
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.position.copy(endPos); ringMesh.lookAt(0,0,0);
+      persistentLinesGroup.add(ringMesh);
+      
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.005, 8, 8), new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.6}));
+      dot.position.copy(endPos); persistentLinesGroup.add(dot);
+    });
+  };
+
+  const raycaster = new THREE.Raycaster();
+  raycaster.params.Line.threshold = 0.04; 
+  const mouse = new THREE.Vector2(-10, -10);
+  const tooltip = document.getElementById('launch-tooltip');
+
+  let activeLaunches = []; 
+  
+  window.triggerLaunch = function(lat, lng, hexColor, destination, missionName, vehicleName, agencyName) {
+    const startPos = ll2v(lat, lng, 1.012);
+    let altTarget = 1.15; let az = 90; 
+    if (destination === 'GTO' || destination === 'GEO') altTarget = 1.6;
+    if (destination === 'Moon' || destination === 'Deep Space') altTarget = 2.5;
+    if (destination === 'SSO' || destination === 'Polar') { altTarget = 1.2; az = 180; }
+
+    const endLat = lat + (az === 180 ? -35 : 15) + (Math.random() * 5 - 2.5);
+    const endLng = lng + (az === 90 ? 45 : 5) + (Math.random() * 5 - 2.5);
+    const endPos = ll2v(endLat, endLng, altTarget); 
+
+    const midPos = startPos.clone().lerp(endPos, 0.5).normalize().multiplyScalar(altTarget * 1.05);
+    const curve = new THREE.QuadraticBezierCurve3(startPos, midPos, endPos);
+    const curvePoints = curve.getPoints(150);
+
+    const marker = new THREE.Group();
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.01, 8, 8), new THREE.MeshBasicMaterial({color: hexColor}));
+    marker.add(dot); globe.add(marker);
+
+    const trailGeo = new THREE.BufferGeometry().setFromPoints(curvePoints);
+    trailGeo.setDrawRange(0, 0); 
+    const trailMat = new THREE.LineBasicMaterial({color: hexColor, transparent: true, opacity: 0.85});
+    const trail = new THREE.Line(trailGeo, trailMat);
+    globe.add(trail);
+
+    activeLaunches.push({
+      id: Math.random().toString(36).substr(2, 9),
+      t: 0, speed: 0.0010, curve: curve, marker: marker, trail: trail,
+      name: missionName || 'Manual Override', vehicle: vehicleName || rocket.name,
+      agency: agencyName || rocket.agency, color: hexColor
+    });
+  };
+
+  window.processLaunchQueue = function() {
+    if (historicalLaunches.length === 0) return;
+    let burstCount = Math.min(Math.floor(Math.random() * 3) + 2, historicalLaunches.length); 
+    for(let i=0; i<burstCount; i++) {
+      setTimeout(() => {
+        const nextLaunch = historicalLaunches.shift();
+        historicalLaunches.push(nextLaunch);
+        const color = AGENCY_COLORS[nextLaunch.agency] || '#ffffff';
+        window.triggerLaunch(nextLaunch.lat, nextLaunch.lng, color, nextLaunch.dest, nextLaunch.name, nextLaunch.vehicle, nextLaunch.agency);
+      }, i * 600); 
+    }
+    setTimeout(window.processLaunchQueue, 5000 + Math.random() * 4000);
+  };
+
+  let drag=false, dragMoved=false, prevX=0, prevY=0;
+  
+  (function animate(){
+    requestAnimationFrame(animate);
+    if(!drag){ globe.rotation.y+=0.0005; }
+    
+    const now = new Date();
+    
+    activeStations.forEach(st => {
+      if (st.isStaticDeepSpace) {
+        // JWST pointer stays static relative to the globe rotation
+        return;
+      }
+      if (st.isTrain) {
+         st.mesh.children.forEach((child, idx) => {
+            let t = new Date(now.getTime() - (idx * st.offsetMs));
+            let pv = satellite.propagate(st.satrec, t);
+            if(pv.position) {
+               let gmst = satellite.gstime(t);
+               let gd = satellite.eciToGeodetic(pv.position, gmst);
+               child.position.copy(ll2v(satellite.degreesLat(gd.latitude), satellite.degreesLong(gd.longitude), 1 + (gd.height / 6371)));
+               child.lookAt(0,0,0);
+            }
+         });
+      } else {
+        let pv = satellite.propagate(st.satrec, now);
+        if(pv.position) {
+          let gmst = satellite.gstime(now);
+          let gd = satellite.eciToGeodetic(pv.position, gmst);
+          st.mesh.position.copy(ll2v(satellite.degreesLat(gd.latitude), satellite.degreesLong(gd.longitude), 1 + (gd.height / 6371)));
+          st.mesh.lookAt(0,0,0);
+          st.mesh.rotation.x += Math.PI / 2; 
+        }
+      }
+    });
+
+    if (globeViewMode === 'orbital') {
+      const positions = satPoints.geometry.attributes.position.array;
+      for(let i=0; i<satCount; i++) {
+          let s = satData[i];
+          s.theta += s.speed;
+          let x = s.r * Math.cos(s.theta);
+          let y = s.r * Math.sin(s.theta) * Math.sin(s.inc);
+          let z = s.r * Math.sin(s.theta) * Math.cos(s.inc);
+          positions[i*3] = x; positions[i*3+1] = y; positions[i*3+2] = z;
+      }
+      satPoints.geometry.attributes.position.needsUpdate = true;
+    }
+
+    for (let i = activeLaunches.length - 1; i >= 0; i--) {
+      let l = activeLaunches[i];
+      l.t += l.speed;
+      if (l.t >= 1) {
+        globe.remove(l.marker); globe.remove(l.trail);
+        l.marker.children[0].geometry.dispose(); l.marker.children[0].material.dispose();
+        l.trail.geometry.dispose(); l.trail.material.dispose();
+        activeLaunches.splice(i, 1);
+      } else {
+        l.marker.position.copy(l.curve.getPoint(l.t));
+        l.trail.geometry.setDrawRange(0, Math.floor(l.t * 151));
+        l.marker.visible = (globeViewMode === 'launch');
+        l.trail.visible = (globeViewMode === 'launch');
+      }
+    }
+      
+    let hoveredObject = null;
+    if (!drag) {
+      raycaster.setFromCamera(mouse, camera);
+      
+      if (globeViewMode === 'launch') {
+        for (let i = 0; i < activeLaunches.length; i++) {
+          const intersects = raycaster.intersectObjects([activeLaunches[i].trail, activeLaunches[i].marker.children[0]]);
+          if (intersects.length > 0) { hoveredObject = {type: 'launch', data: activeLaunches[i]}; break; }
+        }
+      } else {
+        const intersects = raycaster.intersectObjects(interactableOrbitals, false);
+        if (intersects.length > 0) {
+           let obj = intersects[0].object;
+           while(obj && !obj.userData.id) { obj = obj.parent; }
+           if(obj && obj.userData.id) {
+              let s = SATELLITES.find(sat => sat.id === obj.userData.id);
+              if(s) hoveredObject = {type: 'satellite', data: s};
+           }
+        }
+      }
+
+      if (hoveredObject) {
+        tooltip.style.display = 'block';
+        if (hoveredObject.type === 'launch') {
+          let l = hoveredObject.data;
+          tooltip.innerHTML = `
+            <div style="font-size:8px;letter-spacing:2px;color:${l.color};text-transform:uppercase;margin-bottom:4px;">${l.agency}</div>
+            <div style="font-size:13px;font-weight:bold;margin-bottom:2px;">${l.vehicle}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.6);">${l.name}</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.3);margin-top:6px;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;">CLICK TO LOAD TELEMETRY</div>
+          `;
+        } else {
+          let s = hoveredObject.data;
+          let desc = s.class === 'classified' ? '[ CLASSIFIED ]' : s.type;
+          tooltip.innerHTML = `
+            <div style="font-size:8px;letter-spacing:2px;color:${s.color};text-transform:uppercase;margin-bottom:4px;">${s.agency}</div>
+            <div style="font-size:13px;font-weight:bold;margin-bottom:2px;">${s.name}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.6);">${desc}</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.3);margin-top:6px;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;">CLICK FOR ASSET INTEL</div>
+          `;
+        }
+        document.body.style.cursor = 'crosshair';
+      } else {
+        tooltip.style.display = 'none';
+        document.body.style.cursor = 'default';
+      }
+    } else {
+       tooltip.style.display = 'none';
+       document.body.style.cursor = 'grabbing';
+    }
+    renderer.render(scene,camera);
+  })();
+
+  el.addEventListener('mousedown',function(e){drag=true; dragMoved=false; prevX=e.clientX; prevY=e.clientY;});
+  window.addEventListener('mousemove',function(e){
+    const rect = el.getBoundingClientRect();
+    if(e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        tooltip.style.left = e.clientX + 'px';
+        tooltip.style.top = e.clientY + 'px';
+    } else { mouse.x = -100; }
+    if(!drag) return;
+    dragMoved = true;
+    globe.rotation.y+=(e.clientX-prevX)*0.004;
+    globe.rotation.x=Math.max(-0.5,Math.min(0.5,globe.rotation.x+(e.clientY-prevY)*0.003));
+    prevX=e.clientX; prevY=e.clientY;
+  });
+  window.addEventListener('mouseup',function(){drag=false;});
+  
+  el.addEventListener('click', function() {
+    if (dragMoved) return; 
+    raycaster.setFromCamera(mouse, camera);
+
+    if (globeViewMode === 'launch') {
+      let clickedLaunch = null;
+      for (let i = 0; i < activeLaunches.length; i++) {
+        const intersects = raycaster.intersectObjects([activeLaunches[i].trail, activeLaunches[i].marker.children[0]]);
+        if (intersects.length > 0) { clickedLaunch = activeLaunches[i]; break; }
+      }
+      
+      if (clickedLaunch) {
+        const v = clickedLaunch.vehicle.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const a = clickedLaunch.agency.toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        let matchedRocket = ROCKETS.find(r => {
+          const rName = r.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const rAlias = (r.alias || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          return v.includes(rName) || (rAlias && v.includes(rAlias));
+        });
+        
+        if (!matchedRocket) {
+          const agencyMap = {'spacex':'SpaceX','nasa':'NASA','esa':'ESA','arianespace':'ESA','roscosmos':'Roscosmos','russian':'Roscosmos','isro':'ISRO','indian':'ISRO','cnsa':'CNSA','casc':'CNSA','china':'CNSA','rocketlab':'RocketLab','ula':'ULA','unitedlaunchalliance':'ULA'};
+          let mappedAgency = null;
+          for (const [key, val] of Object.entries(agencyMap)) { if (a.includes(key)) { mappedAgency = val; break; } }
+          if (mappedAgency) matchedRocket = ROCKETS.find(r => r.agency === mappedAgency);
+        }
+        if (!matchedRocket) matchedRocket = ROCKETS[0]; 
+        
+        if (matchedRocket) {
+          state.selectionType = 'rocket';
+          state.agency = 'All'; 
+          state.selectedId = matchedRocket.id;
+          if(window.updatePersistentLines) window.updatePersistentLines(matchedRocket.id);
+          setCmdTab('intel'); 
+          render();
+          const card = document.getElementById('vehicle-card-wrapper');
+          if(card) {
+              card.style.setProperty('--accent-50', matchedRocket.accent + '80');
+              card.style.animation = 'none';
+              setTimeout(() => card.style.animation = 'highlight 0.5s ease', 10);
+          }
+        }
+      }
+    } else {
+      const intersects = raycaster.intersectObjects(interactableOrbitals, false);
+      if (intersects.length > 0) {
+         let obj = intersects[0].object;
+         while(obj && !obj.userData.id) { obj = obj.parent; }
+         if(obj && obj.userData.id) {
+            state.selectionType = 'satellite';
+            state.selectedId = obj.userData.id;
+            state.agency = 'All'; 
+            setCmdTab('intel'); 
+            render();
+            
+            // Auto-scroll the left menu to the clicked item
+            const btnList = document.getElementById('rocket-list');
+            const targetBtn = btnList.querySelector('.active');
+            if(targetBtn) {
+               targetBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            const card = document.getElementById('vehicle-card-wrapper');
+            if(card) {
+                let sColor = SATELLITES.find(s=>s.id === state.selectedId)?.color || '#fff';
+                card.style.setProperty('--accent-50', sColor + '80');
+                card.style.animation = 'none';
+                setTimeout(() => card.style.animation = 'highlight 0.5s ease', 10);
+            }
+         }
+      }
+    }
+  });
+
+  // Updated max zoom to 18 to allow viewing of HEO/Deep Space pointers
+  el.addEventListener('wheel',function(e){ camera.position.setLength(Math.max(1.8,Math.min(18,camera.position.length()+e.deltaY*0.006))); },{passive:true});
+  window.addEventListener('resize',function(){ var W=el.clientWidth,H=el.clientHeight; camera.aspect=W/H; camera.updateProjectionMatrix(); renderer.setSize(W,H); });
+})();
+
+// ═══════════════════════════════════════════════════════
+// UI RENDERING
+// ═══════════════════════════════════════════════════════
+window.setCmdTab = function(tab) {
+    currentCmdTab = tab;
+    let accent = state.selectionType === 'rocket' ? (ROCKETS.find(r=>r.id===state.selectedId)?.accent || '#4A9EFF') : (SATELLITES.find(s=>s.id===state.selectedId)?.color || '#fff');
+    const btns = document.getElementById('cmd-tabs').querySelectorAll('button');
+    if (tab === 'intel') {
+      btns[0].classList.add('active'); btns[1].classList.remove('active');
+      btns[0].style.borderColor = accent + '60'; btns[0].style.background = accent + '1a'; btns[0].style.color = '#fff';
+      btns[1].style.borderColor = 'rgba(255,255,255,0.1)'; btns[1].style.background = 'transparent'; btns[1].style.color = 'rgba(255,255,255,0.45)';
+    } else {
+      btns[1].classList.add('active'); btns[0].classList.remove('active');
+      btns[1].style.borderColor = '#22C55E60'; btns[1].style.background = '#22C55E1a'; btns[1].style.color = '#fff';
+      btns[0].style.borderColor = 'rgba(255,255,255,0.1)'; btns[0].style.background = 'transparent'; btns[0].style.color = 'rgba(255,255,255,0.45)';
+    }
+    buildLiveCommand();
+};
+
+function updateAccentVars(){
+  let accent = state.selectionType === 'rocket' ? (ROCKETS.find(r=>r.id===state.selectedId)?.accent || '#4A9EFF') : (SATELLITES.find(s=>s.id===state.selectedId)?.color || '#fff');
+  document.getElementById('logo-astro').style.background='linear-gradient(135deg,#fff 40%,'+accent+')';
+  document.getElementById('logo-astro').style.webkitBackgroundClip='text';
+  document.getElementById('logo-astro').style.webkitTextFillColor='transparent';
+  ['vehicle-hdr','telem-hdr','ctrl-hdr'].forEach(id => document.getElementById(id).style.color=accent);
+  setCmdTab(currentCmdTab);
+}
+
+function buildAgencyFilters() {
+  const af = document.getElementById('agency-filters'); af.innerHTML = '';
+  const filterSet = globeViewMode === 'launch' ? AGENCIES : S_AGENCIES;
+  
+  filterSet.forEach(a => {
+    let btn = document.createElement('button');
+    btn.className = 'pill' + (a === state.agency ? ' active' : '');
+    btn.style.padding = '4px 8px'; btn.style.fontSize = '9px'; btn.style.flexShrink = '0';
+    if (a === state.agency) { btn.style.background = 'rgba(255,255,255,0.15)'; btn.style.borderColor = 'rgba(255,255,255,0.3)'; btn.style.color = '#fff'; }
+    btn.textContent = a;
+    btn.onclick = () => {
+      state.agency = a;
+      if (globeViewMode === 'launch') {
+          const currentRocket = ROCKETS.find(r => r.id === state.selectedId);
+          if (a !== 'All' && (!currentRocket || currentRocket.agency !== a)) {
+            const firstInAgency = ROCKETS.find(r => r.agency === a);
+            if (firstInAgency) { 
+              state.selectionType = 'rocket';
+              state.selectedId = firstInAgency.id; 
+              if(window.updatePersistentLines) window.updatePersistentLines(firstInAgency.id);
+            }
+          }
+      } else {
+          const currentSat = SATELLITES.find(s => s.id === state.selectedId);
+          let matchStr = a === 'Military' ? 'classified' : a;
+          if (a !== 'All' && (!currentSat || !currentSat.agency.includes(a) && currentSat.class !== matchStr)) {
+            const firstInAgency = SATELLITES.find(s => s.agency.includes(a) || s.class === matchStr || (a==='Relic' && s.id==='vanguard'));
+            if (firstInAgency) { 
+              state.selectionType = 'satellite';
+              state.selectedId = firstInAgency.id; 
+            }
+          }
+      }
+      render();
+    };
+    af.appendChild(btn);
+  });
+}
+
+function buildRocketList(){
+  var el=document.getElementById('rocket-list'); el.innerHTML='';
+  
+  if (globeViewMode === 'launch') {
+      const filteredRockets = state.agency === 'All' ? ROCKETS : ROCKETS.filter(r => r.agency === state.agency);
+      filteredRockets.forEach(function(r){
+        var isActive = (state.selectionType === 'rocket' && r.id === state.selectedId);
+        var btn=document.createElement('button');
+        btn.className='rocket-btn'+(isActive?' active':'');
+        btn.style.setProperty('--accent-50',r.accent+'55'); btn.style.setProperty('--accent-10',r.accent+'10');
+        if(isActive){ btn.style.borderColor=r.accent+'55'; btn.style.background=r.accent+'10'; }
+        btn.innerHTML='<div style="font-size:13px;font-weight:700;color:'+(isActive?'#fff':'rgba(255,255,255,0.38)')+'">'+r.name+'</div>'
+          +'<div style="font-size:9px;letter-spacing:2px;color:'+(isActive?r.accent:'rgba(255,255,255,0.2)')+';margin-top:2px;">'+r.agency+'</div>';
+        if(isActive){
+          var bar=document.createElement('span');
+          bar.style.cssText='position:absolute;left:0;top:0;bottom:0;width:2px;background:'+r.accent+';border-radius:6px 0 0 6px;box-shadow:0 0 8px '+r.accent;
+          btn.appendChild(bar);
+        }
+        btn.onclick=function(){
+          state.selectionType = 'rocket';
+          state.selectedId=r.id; 
+          if(window.updatePersistentLines) window.updatePersistentLines(r.id);
+          render();
+        };
+        el.appendChild(btn);
+      });
+  } else {
+      let matchStr = state.agency === 'Military' ? 'classified' : state.agency;
+      const filteredSats = state.agency === 'All' ? SATELLITES : SATELLITES.filter(s => s.agency.includes(state.agency) || s.class === matchStr || (state.agency==='Relic' && s.id==='vanguard'));
+      filteredSats.forEach(function(s){
+        var isActive = (state.selectionType === 'satellite' && s.id === state.selectedId);
+        var btn=document.createElement('button');
+        btn.className='rocket-btn'+(isActive?' active':'');
+        
+        let cColor = s.class === 'classified' ? '#EF4444' : s.color;
+        
+        btn.style.setProperty('--accent-50',cColor+'55'); btn.style.setProperty('--accent-10',cColor+'10');
+        if(isActive){ btn.style.borderColor=cColor+'55'; btn.style.background=cColor+'10'; }
+        
+        let displayName = s.class === 'classified' ? '[ REDACTED ]' : s.name;
+        
+        btn.innerHTML='<div style="font-size:13px;font-weight:700;color:'+(isActive?'#fff':'rgba(255,255,255,0.38)')+'">'+displayName+'</div>'
+          +'<div style="font-size:9px;letter-spacing:2px;color:'+(isActive?cColor:'rgba(255,255,255,0.2)')+';margin-top:2px;">'+s.agency+'</div>';
+        if(isActive){
+          var bar=document.createElement('span');
+          bar.style.cssText='position:absolute;left:0;top:0;bottom:0;width:2px;background:'+cColor+';border-radius:6px 0 0 6px;box-shadow:0 0 8px '+cColor;
+          btn.appendChild(bar);
+        }
+        btn.onclick=function(){
+          state.selectionType = 'satellite';
+          state.selectedId=s.id; 
+          render();
+        };
+        el.appendChild(btn);
+      });
+  }
+}
+
+function buildTelemetry(){
+  var sg=document.getElementById('stat-grid'); sg.innerHTML='';
+  var pb=document.getElementById('perf-bars'); pb.innerHTML='';
+  
+  if (state.selectionType === 'rocket') {
+    let r = ROCKETS.find(r=>r.id===state.selectedId) || ROCKETS[0];
+    var stats=[
+      {l:'Base Thrust',v:r.baseThrust.toLocaleString(),u:'kN'},
+      {l:'Fuel Mass',v:r.baseFuelMass.toLocaleString(),u:'t'},
+      {l:'LEO Payload',v:r.cap.LEO.toLocaleString(),u:'kg'},
+      {l:'GTO Payload',v:r.cap.GTO.toLocaleString(),u:'kg'},
+    ];
+    stats.forEach(function(s){
+      var d=document.createElement('div'); d.className='stat-card';
+      d.innerHTML='<div style="font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:4px;">'+s.l+'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:#fff;">'+s.v+'<span style="font-size:9px;color:rgba(255,255,255,0.35);margin-left:2px;">'+s.u+'</span></div>';
+      sg.appendChild(d);
+    });
+    
+    var bars=[['Thrust Power',r.baseThrust,74400,'kN'],['Payload Mass',r.cap.LEO,150000,'kg'],['Vehicle Height',r.height,121,'m']];
+    bars.forEach(function(b){
+      var pct=Math.min((b[1]/b[2])*100,100);
+      var d=document.createElement('div');
+      d.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+        +'<span style="font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;">'+b[0]+'</span>'
+        +'<span style="font-size:10px;color:rgba(255,255,255,0.55);font-weight:600;">'+Number(b[1]).toLocaleString()+' '+b[3]+'</span></div>'
+        +'<div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;">'
+        +'<div style="height:100%;width:'+pct+'%;background:'+r.accent+';border-radius:2px;transition:width 0.8s;box-shadow:0 0 6px '+r.accent+'"></div></div>';
+      pb.appendChild(d);
+    });
+  } else {
+    let s = SATELLITES.find(s=>s.id===state.selectedId);
+    if(!s) return;
+    
+    let isClassified = s.class === 'classified';
+    let cColor = isClassified ? '#EF4444' : s.color;
+    
+    var stats=[
+      {l:'Orbital Velocity',v:isClassified ? '---' : s.speed.toLocaleString(),u:'km/h'},
+      {l:'Est. Mass',v:isClassified ? '---' : s.mass.toLocaleString(),u:'kg'},
+      {l:'Orbit Type',v:s.orbit,u:''},
+      {l:'Status',v:'Nominal',u:''},
+    ];
+    stats.forEach(function(st){
+      var d=document.createElement('div'); d.className='stat-card';
+      d.innerHTML='<div style="font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:4px;">'+st.l+'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:#fff;" class="'+(isClassified?'redacted':'')+'">'+st.v+'<span style="font-size:9px;color:rgba(255,255,255,0.35);margin-left:2px;">'+st.u+'</span></div>';
+      sg.appendChild(d);
+    });
+    
+    var bars=[['Orbital Speed',isClassified?0:s.speed,28000,'km/h'],['Structural Mass',isClassified?0:s.mass,450000,'kg']];
+    bars.forEach(function(b){
+      var pct=Math.min((b[1]/b[2])*100,100);
+      var d=document.createElement('div');
+      d.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+        +'<span style="font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;">'+b[0]+'</span>'
+        +'<span style="font-size:10px;color:rgba(255,255,255,0.55);font-weight:600;" class="'+(isClassified?'redacted':'')+'">'+(isClassified?'---':Number(b[1]).toLocaleString()+' '+b[3])+'</span></div>'
+        +'<div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;">'
+        +'<div style="height:100%;width:'+pct+'%;background:'+cColor+';border-radius:2px;transition:width 0.8s;box-shadow:0 0 6px '+cColor+'"></div></div>';
+      pb.appendChild(d);
+    });
+  }
+}
+
+function buildUpcoming(){
+  const now = Date.now();
+  var validLaunches = UPCOMING.filter(u => u.t > now - 300000); 
+  var hero = document.getElementById('next-hero');
+  var ll = document.getElementById('launch-list');
+
+  if (validLaunches.length === 0) {
+    hero.innerHTML = '<div style="font-size:10px;color:rgba(255,255,255,0.4);">AWAITING TELEMETRY...</div>'; ll.innerHTML = '';
+    return;
+  }
+
+  var sorted=validLaunches.sort(function(a,b){return a.t-b.t;});
+  var next=sorted[0];
+  var isEvent = next.type === 'event';
+  var nextColor = isEvent ? '#F97316' : (AGENCY_COLORS[next.agency] || '#ffffff');
+
+  hero.style.cssText='padding:12px 14px;border-bottom:1px solid '+nextColor+'20;background:'+nextColor+'08;';
+  hero.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px;text-transform:uppercase;">'+(isEvent?'UPCOMING EVENT':'NEXT LAUNCH')+' · '+next.pad+'</div>'
+    +'<div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+next.name+'</div>'
+    +'<div id="next-countdown" style="font-size:24px;font-weight:900;color:'+nextColor+';font-family:monospace;letter-spacing:2px;"></div>'
+    +'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">'+next.vehicle+' · '+next.dest+'</div>';
+  
+  ll.innerHTML='';
+  sorted.slice(1,7).forEach(function(ul){
+    var ev = ul.type === 'event';
+    var color = ev ? '#F97316' : (AGENCY_COLORS[ul.agency] || '#ffffff');
+    var badge = ev ? 'EVENT' : ul.agency;
+    var d=document.createElement('div'); d.className='launch-item';
+    d.innerHTML='<div style="overflow:hidden;padding-right:8px;"><div style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+ul.name+'</div>'
+      +'<div style="font-size:9px;color:rgba(255,255,255,0.38);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+ul.vehicle+' · '+badge+'</div></div>'
+      +'<div style="text-align:right;flex-shrink:0;"><div data-t="'+ul.t+'" style="font-size:11px;font-weight:700;color:'+color+';font-family:monospace;"></div>'
+      +'<div style="font-size:8px;color:rgba(255,255,255,0.3);margin-top:2px;">'+ul.dest+'</div></div>';
+    ll.appendChild(d);
+  });
+}
+
+function buildLiveCommand() {
+  const container = document.getElementById('cmd-content');
+  if (currentCmdTab === 'intel') {
+    let name, tag, desc, f1L, f1V, f2L, f2V, f3L, f3V, f4L, f4V, img, accent;
+    let isClassified = false;
+
+    if (state.selectionType === 'rocket') {
+      let r = ROCKETS.find(r=>r.id===state.selectedId) || ROCKETS[0];
+      name = r.name; tag = r.tag; desc = r.description; img = r.image; accent = r.accent;
+      f1L = 'First Flight'; f1V = r.firstFlight;
+      f2L = 'Max Crew'; f2V = r.maxCrew === 0 ? 'Uncrewed' : r.maxCrew;
+      f3L = 'Recovery'; f3V = r.reusable ? 'Reusable' : 'Expendable';
+      f4L = 'Est. Cost'; f4V = '$' + r.baseCost + 'M';
+    } else {
+      let s = SATELLITES.find(s=>s.id===state.selectedId) || SATELLITES[0];
+      isClassified = s.class === 'classified';
+      
+      name = isClassified ? '[ REDACTED ]' : s.name; 
+      tag = s.orbit + ' ' + (isClassified ? 'ASSET' : s.type); 
+      desc = s.description; 
+      img = s.image; 
+      accent = isClassified ? '#EF4444' : s.color;
+      
+      f1L = 'Launched'; f1V = s.firstFlight;
+      f2L = 'Agency'; f2V = s.agency;
+      f3L = 'Orbit'; f3V = s.orbit;
+      f4L = 'Status'; f4V = 'Active';
+    }
+
+    container.innerHTML = `
+      <div id="vehicle-card-wrapper" style="flex:1; display:flex; gap: 15px; padding: 16px; background: ${accent}08; border: 1px solid ${accent}30; border-radius: 8px; align-items:center;">
+        
+        <div style="width: 120px; height: 160px; flex-shrink:0; border-radius:6px; overflow:hidden; border:1px solid ${accent}50; position:relative; box-shadow: 0 0 15px rgba(0,0,0,0.5);">
+             <img src="${img}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.style.display='none'" />
+             <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, #010306, transparent); height:40px;"></div>
+             <div style="position:absolute; bottom:4px; width:100%; text-align:center; font-size:8px; letter-spacing:2px; color:${accent};">${isClassified ? 'CLASS: CLASSIFIED' : 'SYS / NOMINAL'}</div>
+        </div>
+        
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+            <div style="font-size:24px; font-weight:900; color:#fff; letter-spacing:-0.5px; line-height: 1.1;" class="${isClassified?'redacted':''}">${name}</div>
+            <div style="font-size:10px; letter-spacing:4px; color:${accent}; text-transform:uppercase; margin-top:4px; margin-bottom: 12px;">${tag}</div>
+            <div style="font-size:11px; color:${isClassified?'#EF4444':'rgba(255,255,255,0.6)'}; line-height:1.5; margin-bottom: 16px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${desc}</div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div style="padding: 8px; background:rgba(255,255,255,0.03); border-radius:4px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:8px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px;">${f1L}</div>
+                <div style="font-size:12px; color:#fff; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${f1V}</div>
+              </div>
+              <div style="padding: 8px; background:rgba(255,255,255,0.03); border-radius:4px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:8px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px;">${f2L}</div>
+                <div style="font-size:12px; color:#fff; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${f2V}</div>
+              </div>
+              <div style="padding: 8px; background:rgba(255,255,255,0.03); border-radius:4px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:8px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px;">${f3L}</div>
+                <div style="font-size:12px; color:#fff; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${f3V}</div>
+              </div>
+              <div style="padding: 8px; background:rgba(255,255,255,0.03); border-radius:4px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:8px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px;">${f4L}</div>
+                <div style="font-size:12px; color:#fff; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="${isClassified?'redacted':''}">${f4V}</div>
+              </div>
+            </div>
+        </div>
+      </div>
+    `;
+  } else {
+    let html = `
+      <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; letter-spacing: 1px; text-align:center;">
+         PERSONNEL CURRENTLY DEPLOYED IN LOW EARTH ORBIT
+      </div>
+      <div class="crew-grid">`;
+      
+    ACTIVE_CREW.forEach(c => {
+      let aColor = AGENCY_COLORS[c.agency] || '#4A9EFF';
+      if(c.agency.includes("ROSCOSMOS") || c.agency.includes("Russian")) aColor = AGENCY_COLORS["Roscosmos"];
+      if(c.agency.includes("CNSA") || c.agency.includes("China")) aColor = AGENCY_COLORS["CNSA"];
+      html += `
+        <div class="crew-card" style="--accent-50: ${aColor}">
+          <img src="${c.image}" class="crew-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjMzMzIiBkPSJNMTIgMmMtMi4yMSAwLTQgMS43OS00IDRzMS43OSA0IDQgNCA0LTEuNzkgNC00LTEuNzktNC00LTR6bTAgMTBjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+'"/>
+          <div style="font-size:11px; font-weight:bold; color:#fff; white-space: nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${c.name}</div>
+          <div style="font-size:9px; color:rgba(255,255,255,0.4); margin-top:4px; white-space: nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; text-transform:uppercase; letter-spacing:1px;">${c.nationality}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+  }
+}
+
+function render(){
+  updateAccentVars(); buildAgencyFilters(); buildRocketList(); buildTelemetry(); buildUpcoming(); buildLiveCommand();
+}
+
+render();
+
+setInterval(function(){
+  var now=Date.now();
+  var validLaunches = UPCOMING.filter(u => u.t > now - 300000); 
+  var nc=document.getElementById('next-countdown');
+  
+  if(nc && validLaunches.length > 0){
+    var sorted = validLaunches.sort(function(a,b){return a.t-b.t;});
+    nc.textContent=fmtCD(sorted[0].t-now);
+  }
+  document.querySelectorAll('[data-t]').forEach(function(el){ el.textContent=fmtCD(parseInt(el.dataset.t)-now); });
+},1000);
+</script>
+</body>
+</html>

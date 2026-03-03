@@ -3,68 +3,171 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="referrer" content="no-referrer" />
 <title>Astro Mission - Project Oceanus</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.1.3/satellite.min.js"></script>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{width:100%;height:100vh;margin:0;padding:0;background:linear-gradient(to bottom, #02040a 0%, #060913 100%);overflow:hidden;color:#fff;font-family:monospace;}
-  canvas{display:block;}
-  #stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
-  #globe-mount{width:100%;height:100%;cursor:grab;}
-  #globe-mount:active{cursor:grabbing;}
-  button{font-family:monospace;outline:none;cursor:pointer;}
-  ::-webkit-scrollbar{width:5px; height:5px;} 
-  ::-webkit-scrollbar-thumb{background:rgba(56, 189, 248, 0.3);border-radius:3px;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-  @keyframes highlight{0%{transform:scale(0.98);box-shadow:0 0 0 transparent}50%{transform:scale(1.02);box-shadow:0 0 25px var(--accent-50)}100%{transform:scale(1);box-shadow:0 0 0 transparent}}
-  @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes flashAlarm{0%,100%{background:rgba(255,0,0,0.8); text-shadow:0 0 30px #f00;}50%{background:rgba(150,0,0,0.4); text-shadow:0 0 10px #f00;}}
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #02040a 0%, #060913 100%);
+    overflow: hidden;
+    color: #fff;
+    font-family: monospace;
+  }
+  
+  canvas {
+    display: block;
+  }
+  
+  #stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  
+  #globe-mount {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  
+  #globe-mount:active {
+    cursor: grabbing;
+  }
+  
+  button {
+    font-family: monospace;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 5px; 
+    height: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 3px;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  
+  @keyframes highlight {
+    0% { transform: scale(0.98); box-shadow: 0 0 0 transparent; }
+    50% { transform: scale(1.02); box-shadow: 0 0 25px var(--accent-50); }
+    100% { transform: scale(1); box-shadow: 0 0 0 transparent; }
+  }
+  
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes flashAlarm {
+    0%, 100% { background: rgba(255,0,0,0.8); text-shadow: 0 0 30px #f00; }
+    50% { background: rgba(150,0,0,0.4); text-shadow: 0 0 10px #f00; }
+  }
   
   /* Boot Sequence */
   #boot-sequence {
-    position: fixed; inset: 0; z-index: 9999; background: #010205; color: #4ADE80;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    font-family: monospace; transition: opacity 0.5s ease;
+    position: fixed; 
+    inset: 0; 
+    z-index: 9999; 
+    background: #010205; 
+    color: #4ADE80; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
+    font-family: monospace; 
+    transition: opacity 0.5s ease;
   }
 
   /* Temp Warning Overlay */
   #temp-warning {
-    position: absolute; bottom: 0; left: 0; right: 0; height: 45%; 
-    z-index: 1000; pointer-events: none; display: none;
-    flex-direction: column; justify-content: center; align-items: center;
+    position: absolute; 
+    bottom: 0; left: 0; right: 0; 
+    height: 45%; 
+    z-index: 1000; 
+    pointer-events: none; 
+    display: none;
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
     background: linear-gradient(to top, rgba(255,0,0,0.6), transparent);
-    border-top: 1px solid rgba(255,0,0,0.3); backdrop-filter: blur(4px);
+    border-top: 1px solid rgba(255,0,0,0.3); 
+    backdrop-filter: blur(4px);
     animation: flashAlarm 0.8s infinite;
   }
 
   /* System Log */
   #system-log {
-    position: absolute; bottom: 50px; left: 36px; z-index: 20;
-    font-size: 10px; color: #4ADE80; font-family: monospace; 
-    opacity: 0.85; pointer-events: none; display: flex; 
-    flex-direction: column; gap: 6px; height: 85px; width: 350px;
+    position: absolute; 
+    bottom: 50px; left: 36px; 
+    z-index: 20;
+    font-size: 10px; color: #4ADE80; 
+    font-family: monospace; 
+    opacity: 0.85; 
+    pointer-events: none; 
+    display: flex; 
+    flex-direction: column; gap: 6px; 
+    height: 85px; width: 350px;
     overflow: hidden; justify-content: flex-end;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
     mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
   }
-  .log-entry { animation: fadein 0.3s ease; text-shadow: 0 0 5px #4ADE80; font-weight: bold; letter-spacing: 1px;}
+  
+  .log-entry { 
+    animation: fadein 0.3s ease; 
+    text-shadow: 0 0 5px #4ADE80; 
+    font-weight: bold; 
+    letter-spacing: 1px;
+  }
 
   /* Layout Transitions */
-  #app { height:100vh; display:flex; flex-direction:column; overflow:hidden; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  #app { 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+  }
   
   #panels-area {
-    flex:1; min-height:0; display:flex; gap:16px; padding:10px 24px 20px; 
-    overflow:visible; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 1; 
+    min-height: 0; 
+    display: flex; gap: 16px; 
+    padding: 10px 24px 20px; 
+    overflow: visible; 
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .panel {
     background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 15, 28, 0.98) 100%);
     border: 1px solid rgba(56, 189, 248, 0.2); 
     border-top: 2px solid rgba(56, 189, 248, 0.6);
-    border-radius:12px; backdrop-filter:blur(24px); overflow:hidden; 
-    display:flex; flex-direction:column; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    height: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-radius: 12px; 
+    backdrop-filter: blur(24px); 
+    overflow: hidden; 
+    display: flex; flex-direction: column; 
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%; 
+    box-shadow: 0 12px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1);
   }
   
   .panel.minimized { 
@@ -72,6 +175,7 @@
     width: 200px !important; opacity: 0.8; 
     border-color: rgba(56, 189, 248, 0.3); border-top-width: 1px; margin-top: auto; 
   }
+  
   .panel.minimized .panel-content, .panel.minimized #agency-filters, .panel.minimized #cmd-tabs { 
     opacity: 0; transition: opacity 0.2s; pointer-events: none; display: none !important;
   }
@@ -81,45 +185,73 @@
     opacity: 1; z-index: 50; box-shadow: 0 -15px 50px rgba(0,0,0,0.95); 
     border-top: 2px solid rgba(56, 189, 248, 0.8);
   }
+  
   .panel.minimized:hover .panel-content, .panel.minimized:hover #agency-filters, .panel.minimized:hover #cmd-tabs { 
     opacity: 1; pointer-events: auto; display: flex !important; 
   }
 
   .panel-hdr {
-    padding:14px 18px; border-bottom:1px solid rgba(56, 189, 248, 0.15); 
+    padding: 14px 18px; border-bottom: 1px solid rgba(56, 189, 248, 0.15); 
     background: rgba(56, 189, 248, 0.05); color: #e0f2fe;
-    font-size:11px; letter-spacing:4px; text-transform:uppercase; font-weight:800;
+    font-size: 11px; letter-spacing: 4px; text-transform: uppercase; font-weight: 800;
     display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; flex-shrink: 0;
   }
   
-  .min-toggle { cursor: pointer; color: rgba(56, 189, 248, 0.6); font-size: 18px; padding: 0 6px; transition: color 0.2s; font-weight: bold;}
+  .min-toggle { 
+    cursor: pointer; color: rgba(56, 189, 248, 0.6); 
+    font-size: 18px; padding: 0 6px; transition: color 0.2s; font-weight: bold;
+  }
+  
   .min-toggle:hover { color: #fff; }
 
-  .pill{padding:8px 16px;font-size:12px;font-weight:700; letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;transition:all 0.15s;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);}
-  .pill.active{color:#fff; background:rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5);}
-  .pill:hover:not(.active){background:rgba(255,255,255,0.1); color:#fff;}
+  .pill { 
+    padding: 8px 16px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; 
+    text-transform: uppercase; border-radius: 6px; transition: all 0.15s; 
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); 
+  }
+  .pill.active { color:#fff; background:rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); }
+  .pill:hover:not(.active) { background:rgba(255,255,255,0.1); color:#fff; }
   
-  .rocket-btn{text-align:left;padding:12px 14px;border-radius:8px;transition:all 0.2s;border:1px solid transparent;background:transparent;width:100%;position:relative;}
-  .rocket-btn.active{border-color:var(--accent-50)!important;background:var(--accent-10)!important;}
-  .rocket-btn:hover:not(.active){background:rgba(255,255,255,0.08);}
+  .rocket-btn { 
+    text-align: left; padding: 12px 14px; border-radius: 8px; transition: all 0.2s; 
+    border: 1px solid transparent; background: transparent; width: 100%; position: relative; 
+  }
+  .rocket-btn.active { border-color:var(--accent-50)!important; background:var(--accent-10)!important; }
+  .rocket-btn:hover:not(.active) { background:rgba(255,255,255,0.08); }
   
-  .stat-card{padding:12px 14px;border-radius:8px;background:rgba(0,0,0,0.3);border:1px solid rgba(56, 189, 248, 0.15); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);}
-  .launch-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);}
+  .stat-card { 
+    padding: 12px 14px; border-radius: 8px; background: rgba(0,0,0,0.3); 
+    border: 1px solid rgba(56, 189, 248, 0.15); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); 
+  }
   
-  #launch-tooltip {
-    position: fixed; background: rgba(10, 15, 28, 0.98); border: 1px solid rgba(56, 189, 248, 0.6);
-    padding: 14px 18px; border-radius: 8px; font-family: monospace; pointer-events: none;
-    display: none; z-index: 100; backdrop-filter: blur(16px); box-shadow: 0 12px 40px rgba(0,0,0,0.9);
-    transform: translate(15px, 15px);
+  .launch-item { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 12px 14px; border-radius: 6px; background: rgba(0,0,0,0.3); 
+    border: 1px solid rgba(255,255,255,0.08); 
+  }
+  
+  #launch-tooltip { 
+    position: fixed; background: rgba(10, 15, 28, 0.98); border: 1px solid rgba(56, 189, 248, 0.6); 
+    padding: 14px 18px; border-radius: 8px; font-family: monospace; pointer-events: none; 
+    display: none; z-index: 100; backdrop-filter: blur(16px); box-shadow: 0 12px 40px rgba(0,0,0,0.9); 
+    transform: translate(15px, 15px); 
   }
 
   .crew-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
   .crew-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 16px 12px; text-align: center; }
   .crew-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; border: 2px solid var(--accent-50, #4A9EFF); }
-
-  .view-toggle { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); padding: 10px 18px; border-radius: 24px; transition: all 0.3s; cursor: pointer; color: #fff;}
+  
+  .view-toggle { 
+    display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.08); 
+    border: 1px solid rgba(255,255,255,0.3); padding: 10px 18px; border-radius: 24px; 
+    transition: all 0.3s; cursor: pointer; color: #fff;
+  }
   .view-toggle:hover { background: rgba(255,255,255,0.15); border-color: #38BDF8; }
-  .redacted { background: repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 10px, #333 10px, #333 20px); color: transparent !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; user-select: none;}
+  
+  .redacted { 
+    background: repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 10px, #333 10px, #333 20px); 
+    color: transparent !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; user-select: none;
+  }
 </style>
 </head>
 <body>
@@ -133,69 +265,77 @@
 <div id="launch-tooltip"></div>
 
 <div id="app" style="opacity: 0;">
-
   <div id="globe-area" style="height:55%; flex-shrink:0; position:relative; overflow:hidden; transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);">
+    
     <div id="globe-mount"></div>
     
     <div id="temp-warning">
        <div style="font-size: 5vw; font-weight: 900; color: #fff; letter-spacing: 15px; text-align:center;">TEMPERATURE WARNING</div>
        <div style="font-size: 1.5vw; font-weight: bold; color: #ffaaaa; letter-spacing: 6px; margin-top: 15px; text-align:center;">ASSET PROXIMITY CRITICAL // AVOID DIRECT EXPOSURE</div>
     </div>
-
+    
     <div id="header" style="position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:20px 36px;background:linear-gradient(to bottom,rgba(2,4,10,0.98) 0%,transparent 100%); pointer-events: none;">
       <div style="display:flex;align-items:center;gap:14px; pointer-events: auto;">
         <span id="logo-astro" style="font-size:28px;letter-spacing:6px;font-weight:900; color:#38BDF8; text-shadow: 0 0 15px rgba(56,189,248,0.5);">ASTRO</span>
         <span style="font-size:28px;letter-spacing:6px;font-weight:900;color:rgba(255,255,255,0.6);">MISSION</span>
       </div>
-      
       <div style="display:flex;align-items:center;gap:18px; pointer-events: auto;">
         <button id="view-toggle-btn" class="view-toggle" onclick="toggleGlobeView()">
-          <span id="view-icon" style="color:#FBBF24; font-size:16px;">◎</span>
-          <span id="view-label" style="font-size:12px; letter-spacing:2px; font-weight:bold;">LAUNCH VIEW</span>
+            <span id="view-icon" style="color:#FBBF24; font-size:16px;">◎</span>
+            <span id="view-label" style="font-size:12px; letter-spacing:2px; font-weight:bold;">LAUNCH VIEW</span>
         </button>
-
         <button class="view-toggle" onclick="toggleHUD()" style="border-color: rgba(255,255,255,0.3);">
-          <span id="hud-icon" style="font-size:16px;">👁</span>
-          <span style="font-size:12px; letter-spacing:2px; font-weight:bold;">HUD</span>
+            <span id="hud-icon" style="font-size:16px;">👁</span>
+            <span style="font-size:12px; letter-spacing:2px; font-weight:bold;">HUD</span>
         </button>
-
         <div style="display:flex;align-items:center;gap:10px;border-left:1px solid rgba(255,255,255,0.2);padding-left:18px;">
-          <span id="status-dot" style="width:10px;height:10px;border-radius:50%;background:#4ADE80;box-shadow:0 0 15px #4ADE80;display:inline-block;animation:pulse 2s infinite;"></span>
-          <span id="status-txt" style="font-size:12px;letter-spacing:2px;color:#fff; font-weight:bold;">NETWORK NOMINAL</span>
+            <span id="status-dot" style="width:10px;height:10px;border-radius:50%;background:#4ADE80;box-shadow:0 0 15px #4ADE80;display:inline-block;animation:pulse 2s infinite;"></span>
+            <span id="status-txt" style="font-size:12px;letter-spacing:2px;color:#fff; font-weight:bold;">NETWORK NOMINAL</span>
         </div>
         <span id="utc-clock" style="font-size:12px;letter-spacing:2px;color:rgba(56, 189, 248, 0.8); font-weight:bold; margin-left: 14px;"></span>
       </div>
     </div>
-
+    
     <div id="system-log"></div>
-
+    
     <div style="position:absolute;bottom:20px;left:24px;z-index:20;display:flex;gap:20px;pointer-events:none; flex-wrap:wrap; max-width: 80%;" id="bottom-legend">
-      <div style="display:flex;align-items:center;gap:8px;"><span style="color:#38BDF8; font-size:16px;">▲</span><span style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:bold;">Active Launches</span></div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center;"><div style="width:4px; height:4px; background:rgba(255,255,255,0.7); border-radius:50%;"></div></div>
-        <span style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:bold;">Projected Corridors</span>
+          <span style="color:#38BDF8; font-size:16px;">▲</span>
+          <span style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:bold;">Active Launches</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center;">
+              <div style="width:4px; height:4px; background:rgba(255,255,255,0.7); border-radius:50%;"></div>
+          </div>
+          <span style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:bold;">Projected Corridors</span>
       </div>
     </div>
-
+    
     <div style="position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,#02040a 0%,transparent 100%);pointer-events:none;z-index:10;"></div>
   </div>
 
   <div id="panels-area">
-    <div class="panel" id="panel-fleet" style="flex-shrink:0;width:260px;">
-      <div class="panel-hdr"><span id="vehicle-hdr">Spacecraft Fleet</span> <span class="min-toggle" onclick="toggleMinimize('panel-fleet')">_</span></div>
+    <div class="panel" id="panel-fleet" style="flex-shrink:0;width:240px;">
+      <div class="panel-hdr">
+          <span id="vehicle-hdr">Spacecraft Fleet</span> 
+          <span class="min-toggle" onclick="toggleMinimize('panel-fleet')">_</span>
+      </div>
       <div id="agency-filters" style="display:flex; gap:8px; padding:12px 14px; overflow-x:auto; border-bottom:1px solid rgba(56, 189, 248, 0.15); flex-shrink: 0;"></div>
       <div id="rocket-list" class="panel-content" style="flex:1;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
-
-    <div class="panel" id="panel-specs" style="flex-shrink:0;width:260px;">
-      <div class="panel-hdr"><span id="telem-hdr">Capabilities</span> <span class="min-toggle" onclick="toggleMinimize('panel-specs')">_</span></div>
-      <div class="panel-content" style="flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;">
+    
+    <div class="panel" id="panel-specs" style="flex-shrink:0;width:220px;">
+      <div class="panel-hdr">
+          <span id="telem-hdr">Capabilities</span> 
+          <span class="min-toggle" onclick="toggleMinimize('panel-specs')">_</span>
+      </div>
+      <div class="panel-content" style="flex:1;padding:16px 14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="stat-grid"></div>
         <div id="perf-bars" style="display:flex;flex-direction:column;gap:14px;margin-top:10px;"></div>
       </div>
     </div>
-
-    <div class="panel" id="panel-schedule" style="flex-shrink:0;width:320px;">
+    
+    <div class="panel" id="panel-schedule" style="flex-shrink:0;width:280px;">
       <div class="panel-hdr">
         <span>Schedule</span> 
         <div style="display:flex; align-items:center; gap:10px;">
@@ -206,8 +346,8 @@
       <div id="next-hero" class="panel-content" style="padding:16px 18px; flex-shrink: 0;"></div>
       <div id="launch-list" class="panel-content" style="flex:1;padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
     </div>
-
-    <div class="panel" id="panel-command" style="flex:1;min-width:0;">
+    
+    <div class="panel" id="panel-command" style="flex:1;min-width:350px;">
       <div class="panel-hdr" style="padding: 10px 14px;">
         <span id="ctrl-hdr" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">Live Command</span>
         <div style="display:flex; gap:6px; flex-shrink:0; align-items:center;" id="cmd-tabs">
@@ -228,31 +368,20 @@
 (function initStars() {
     const canvas = document.getElementById('stars');
     const ctx = canvas.getContext('2d');
-    
     function drawStars() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         for(let i=0; i<400; i++) {
             ctx.beginPath();
-            let x = Math.random() * canvas.width;
-            let y = Math.random() * canvas.height;
-            let size = Math.random() * 1.5;
-            let alpha = 0.2 + Math.random() * 0.6;
+            let x = Math.random() * canvas.width; let y = Math.random() * canvas.height;
+            let size = Math.random() * 1.5; let alpha = 0.2 + Math.random() * 0.6;
             ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-            ctx.arc(x, y, size, 0, Math.PI*2);
-            ctx.fill();
+            ctx.arc(x, y, size, 0, Math.PI*2); ctx.fill();
         }
     }
-    
-    drawStars();
-    window.addEventListener('resize', drawStars);
+    drawStars(); window.addEventListener('resize', drawStars);
 })();
 
-// ═══════════════════════════════════════════════════════
-// GLOBAL HELPERS & LOGGING
-// ═══════════════════════════════════════════════════════
 function fmtCD(ms){
   if(ms<=0)return'00:00:00';
   const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000),s=Math.floor((ms%60000)/1000);
@@ -260,14 +389,10 @@ function fmtCD(ms){
 }
 
 window.pushLog = function(msg) {
-  const log = document.getElementById('system-log');
-  if(!log) return;
-  const line = document.createElement('div');
-  line.className = 'log-entry';
-  const time = new Date().toISOString().substring(11,19);
-  line.textContent = `[${time}] ${msg}`;
-  log.appendChild(line);
-  if(log.children.length > 5) log.removeChild(log.firstChild);
+  const log = document.getElementById('system-log'); if(!log) return;
+  const line = document.createElement('div'); line.className = 'log-entry';
+  line.textContent = `[${new Date().toISOString().substring(11,19)}] ${msg}`;
+  log.appendChild(line); if(log.children.length > 5) log.removeChild(log.firstChild);
 };
 
 window.onload = function() {
@@ -276,8 +401,7 @@ window.onload = function() {
   let bootInt = setInterval(() => {
     if(step < msgs.length) { textEl.innerText = msgs[step]; step++; } 
     else {
-      clearInterval(bootInt);
-      document.getElementById('boot-sequence').style.opacity = 0;
+      clearInterval(bootInt); document.getElementById('boot-sequence').style.opacity = 0;
       document.getElementById('app').style.opacity = 1;
       setTimeout(() => document.getElementById('boot-sequence').remove(), 500);
       pushLog("PROJECT OCEANUS COMMAND INTERFACE ONLINE");
@@ -285,9 +409,6 @@ window.onload = function() {
   }, 400);
 };
 
-// ═══════════════════════════════════════════════════════
-// GLOBAL STATE & LAYOUT LOGIC
-// ═══════════════════════════════════════════════════════
 let hudVisible = true;
 let viewMode = 0; 
 let isSolarSystem = false; 
@@ -295,8 +416,7 @@ let state = {selectionType: 'rocket', selectedId: 'falcon-9', agency: 'All'};
 let currentCmdTab = 'intel'; 
 
 window.setCmdTab = function(tab) {
-    currentCmdTab = tab;
-    const tabs = document.getElementById('cmd-tabs').querySelectorAll('.pill');
+    currentCmdTab = tab; const tabs = document.getElementById('cmd-tabs').querySelectorAll('.pill');
     tabs[0].className = 'pill' + (tab === 'intel' ? ' active' : '');
     tabs[1].className = 'pill' + (tab === 'crew' ? ' active' : '');
     buildLiveCommand();
@@ -309,71 +429,76 @@ function evaluateLayout() {
   setTimeout(() => window.dispatchEvent(new Event('resize')), 600);
 }
 
-function toggleMinimize(id) {
-  document.getElementById(id).classList.toggle('minimized');
-  evaluateLayout();
-}
-
-function showTempWarning() {
-    const w = document.getElementById('temp-warning');
-    w.style.display = 'flex';
-    setTimeout(() => { w.style.display = 'none'; }, 4000);
-}
+function toggleMinimize(id) { document.getElementById(id).classList.toggle('minimized'); evaluateLayout(); }
+function showTempWarning() { const w = document.getElementById('temp-warning'); w.style.display = 'flex'; setTimeout(() => { w.style.display = 'none'; }, 4000); }
 
 // ═══════════════════════════════════════════════════════
-// DATA DICTIONARIES 
+// DATA DICTIONARIES (With verified Wikimedia direct links)
 // ═══════════════════════════════════════════════════════
 const ROCKETS = [
-  {id:'falcon-9', agency:'SpaceX', name:'Falcon 9', accent:'#38BDF8', tag:'Workhorse of orbit', height:70, baseThrust:7607, baseFuelMass:549, baseCost:67, maxCrew:4, reusable:true, firstFlight:'2010', description:'A reusable, two-stage rocket designed for the reliable transport of people and payloads.', cap:{LEO:22800,GTO:8300}, image: 'https://upload.wikimedia.org/wikipedia/commons/c/c8/Falcon_9_Flight_28_at_KSC_LC-39A.jpg'},
-  {id:'falcon-heavy', agency:'SpaceX', name:'Falcon Heavy', accent:'#38BDF8', tag:'Heavy Lifter', height:70, baseThrust:22819, baseFuelMass:1400, baseCost:97, maxCrew:0, reusable:true, firstFlight:'2018', description:'Consists of a strengthened Falcon 9 core with two Falcon 9 first stages as strap-on boosters.', cap:{LEO:63800,GTO:26700}, image: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Falcon_Heavy_Demo_Mission_%2839337245145%29.jpg'},
-  {id:'starship', agency:'SpaceX', name:'Starship', accent:'#38BDF8', tag:'The Mars machine', height:121, baseThrust:74400, baseFuelMass:4600, baseCost:100, maxCrew:100, reusable:true, firstFlight:'2023', description:'A fully reusable transport system designed to carry both crew and cargo to Earth orbit, the Moon, and Mars.', cap:{LEO:150000,GTO:100000}, image: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Starship_Flight_Test_3_pad.jpg'},
-  {id:'crew-dragon', agency:'SpaceX', name:'Crew Dragon', accent:'#38BDF8', tag:'Crew to orbit', height:8, baseThrust:68, baseFuelMass:10, baseCost:55, maxCrew:7, reusable:true, firstFlight:'2019', description:'A class of partially reusable spacecraft designed to ferry astronauts to the ISS.', cap:{LEO:6000,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/SpaceX_Crew-1_Launch_%2850608579992%29.jpg'},
-  {id:'sls', agency:'NASA', name:'SLS', accent:'#FBBF24', tag:'Artemis Moon Rocket', height:98, baseThrust:39000, baseFuelMass:2600, baseCost:2000, maxCrew:4, reusable:false, firstFlight:'2022', description:'The Space Launch System is a super heavy-lift expendable launch vehicle for deep space exploration.', cap:{LEO:95000,GTO:27000}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Artemis_1_on_launch_pad.jpg'},
+  {id:'falcon-9', agency:'SpaceX', name:'Falcon 9', accent:'#38BDF8', tag:'Workhorse of orbit', height:70, baseThrust:7607, baseFuelMass:549, baseCost:67, maxCrew:4, reusable:true, firstFlight:'2010', description:'A reusable, two-stage rocket.', cap:{LEO:22800,GTO:8300}, image: 'https://upload.wikimedia.org/wikipedia/commons/c/c8/Falcon_9_Flight_28_at_KSC_LC-39A.jpg'},
+  {id:'falcon-heavy', agency:'SpaceX', name:'Falcon Heavy', accent:'#38BDF8', tag:'Heavy Lifter', height:70, baseThrust:22819, baseFuelMass:1400, baseCost:97, maxCrew:0, reusable:true, firstFlight:'2018', description:'Consists of a strengthened Falcon 9 core.', cap:{LEO:63800,GTO:26700}, image: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Falcon_Heavy_Demo_Mission_%2839337245145%29.jpg'},
+  {id:'starship', agency:'SpaceX', name:'Starship', accent:'#38BDF8', tag:'The Mars machine', height:121, baseThrust:74400, baseFuelMass:4600, baseCost:100, maxCrew:100, reusable:true, firstFlight:'2023', description:'A fully reusable transport system.', cap:{LEO:150000,GTO:100000}, image: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Starship_Flight_Test_3_pad.jpg'},
+  {id:'crew-dragon', agency:'SpaceX', name:'Crew Dragon', accent:'#38BDF8', tag:'Crew to orbit', height:8, baseThrust:68, baseFuelMass:10, baseCost:55, maxCrew:7, reusable:true, firstFlight:'2019', description:'Designed to ferry astronauts to the ISS.', cap:{LEO:6000,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/SpaceX_Crew-1_Launch_%2850608579992%29.jpg'},
+  {id:'sls', agency:'NASA', name:'SLS', accent:'#FBBF24', tag:'Artemis Moon Rocket', height:98, baseThrust:39000, baseFuelMass:2600, baseCost:2000, maxCrew:4, reusable:false, firstFlight:'2022', description:'Super heavy-lift expendable launch vehicle.', cap:{LEO:95000,GTO:27000}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Artemis_1_on_launch_pad.jpg'},
   {id:'saturn-v', agency:'NASA', name:'Saturn V', accent:'#FBBF24', tag:'The Moon rocket', height:111, baseThrust:35100, baseFuelMass:2767, baseCost:185, maxCrew:3, reusable:false, firstFlight:'1967', description:'The super heavy-lift launch vehicle used by NASA between 1967 and 1973 for the Apollo program.', cap:{LEO:130000,GTO:48600}, image: 'https://upload.wikimedia.org/wikipedia/commons/1/16/Apollo_11_Launch_-_GPN-2000-000630.jpg'},
-  {id:'atlas-v', agency:'ULA', name:'Atlas V', accent:'#818CF8', tag:'Reliable Workhorse', height:58, baseThrust:3827, baseFuelMass:305, baseCost:109, maxCrew:2, reusable:false, firstFlight:'2002', description:'An expendable launch vehicle that has been a mainstay of US military and scientific launches.', cap:{LEO:18814,GTO:8900}, image: 'https://upload.wikimedia.org/wikipedia/commons/9/94/Atlas_V_AEHF-4_launch.jpg'},
+  {id:'atlas-v', agency:'ULA', name:'Atlas V', accent:'#818CF8', tag:'Reliable Workhorse', height:58, baseThrust:3827, baseFuelMass:305, baseCost:109, maxCrew:2, reusable:false, firstFlight:'2002', description:'An expendable launch vehicle mainstay.', cap:{LEO:18814,GTO:8900}, image: 'https://upload.wikimedia.org/wikipedia/commons/9/94/Atlas_V_AEHF-4_launch.jpg'},
   {id:'vulcan', agency:'ULA', name:'Vulcan Centaur', alias:'Vulcan', accent:'#818CF8', tag:'Next Gen ULA', height:62, baseThrust:4900, baseFuelMass:400, baseCost:110, maxCrew:0, reusable:false, firstFlight:'2024', description:'A heavy-lift launch vehicle developed to meet the demands of the US Space Force and commercial market.', cap:{LEO:27200,GTO:14500}, image: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Vulcan_Centaur_Certification_Flight_1_%2853452655841%29.jpg'},
   {id:'delta-iv', agency:'ULA', name:'Delta IV Heavy', accent:'#818CF8', tag:'Heavy Payload', height:72, baseThrust:9420, baseFuelMass:600, baseCost:350, maxCrew:0, reusable:false, firstFlight:'2004', description:'An expendable heavy-lift launch vehicle, the largest type of the Delta IV family.', cap:{LEO:28370,GTO:13810}, image: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Delta_IV_Heavy_NROL-44_launch_%2850702879553%29.jpg'},
-  {id:'ariane-5', agency:'ESA', name:'Ariane 5', accent:'#2DD4BF', tag:'European Heavy', height:52, baseThrust:13000, baseFuelMass:480, baseCost:137, maxCrew:0, reusable:false, firstFlight:'1996', description:'A highly reliable retired European heavy-lift launch vehicle instrumental in commercial launches.', cap:{LEO:20000,GTO:10865}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/07/Ariane_5_flight_VA256.jpg'},
+  {id:'ariane-5', agency:'ESA', name:'Ariane 5', accent:'#2DD4BF', tag:'European Heavy', height:52, baseThrust:13000, baseFuelMass:480, baseCost:137, maxCrew:0, reusable:false, firstFlight:'1996', description:'Highly reliable retired European vehicle.', cap:{LEO:20000,GTO:10865}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/07/Ariane_5_flight_VA256.jpg'},
   {id:'ariane-6', agency:'ESA', name:'Ariane 6', accent:'#2DD4BF', tag:'Europe to orbit', height:63, baseThrust:13400, baseFuelMass:530, baseCost:115, maxCrew:0, reusable:false, firstFlight:'2024', description:'A European expendable launch system currently under development.', cap:{LEO:21650,GTO:11500}, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ariane_6_on_launch_pad_with_gantry_removed.jpg/800px-Ariane_6_on_launch_pad_with_gantry_removed.jpg'},
   {id:'vega', agency:'ESA', name:'Vega', accent:'#2DD4BF', tag:'Small payloads', height:30, baseThrust:2200, baseFuelMass:130, baseCost:37, maxCrew:0, reusable:false, firstFlight:'2012', description:'An expendable launch system in use by Arianespace designed to launch small payloads to polar orbits.', cap:{LEO:1450,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/5/52/VV16_liftoff.jpg'},
-  {id:'soyuz', agency:'Roscosmos', name:'Soyuz-2', alias:'Soyuz', accent:'#F87171', tag:'Russian workhorse', height:46, baseThrust:4140, baseFuelMass:277, baseCost:45, maxCrew:3, reusable:false, firstFlight:'2004', description:'The legendary family of expendable Russian launch systems.', cap:{LEO:8200,GTO:3250}, image: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Soyuz-FG_launch_vehicle_rolls_out_to_the_launch_pad.jpg'},
+  {id:'soyuz', agency:'Roscosmos', name:'Soyuz-2', accent:'#F87171', tag:'Russian workhorse', height:46, baseThrust:4140, baseFuelMass:277, baseCost:45, maxCrew:3, reusable:false, firstFlight:'2004', description:'Legendary family of Russian systems.', cap:{LEO:8200,GTO:3250}, image: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Soyuz-FG_launch_vehicle_rolls_out_to_the_launch_pad.jpg'},
   {id:'proton', agency:'Roscosmos', name:'Proton-M', accent:'#F87171', tag:'Heavy Lifter', height:53, baseThrust:10000, baseFuelMass:630, baseCost:65, maxCrew:0, reusable:false, firstFlight:'2001', description:'An expendable Russian heavy-lift launch vehicle derived from the older Proton family.', cap:{LEO:23000,GTO:6920}, image: 'https://upload.wikimedia.org/wikipedia/commons/7/72/Proton_Zvezda_crop.jpg'},
   {id:'angara', agency:'Roscosmos', name:'Angara A5', accent:'#F87171', tag:'Next Gen Russian', height:55, baseThrust:9700, baseFuelMass:773, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2014', description:'A family of space-launch vehicles developed by the Khrunichev State Research and Production Space Center.', cap:{LEO:24500,GTO:5400}, image: 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Angara-A5_1.jpg'},
-  {id:'pslv', agency:'ISRO', name:'PSLV', accent:'#FB923C', tag:'Polar sat launcher', height:44, baseThrust:4800, baseFuelMass:320, baseCost:21, maxCrew:0, reusable:false, firstFlight:'1993', description:'The Polar Satellite Launch Vehicle is an expendable medium-lift launch vehicle operated by ISRO.', cap:{LEO:3800,GTO:1200}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/PSLV-C47_liftoff.jpg'},
+  {id:'pslv', agency:'ISRO', name:'PSLV', accent:'#FB923C', tag:'Polar sat launcher', height:44, baseThrust:4800, baseFuelMass:320, baseCost:21, maxCrew:0, reusable:false, firstFlight:'1993', description:'Medium-lift launch vehicle operated by ISRO.', cap:{LEO:3800,GTO:1200}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/PSLV-C47_liftoff.jpg'},
   {id:'gslv', agency:'ISRO', name:'GSLV', accent:'#FB923C', tag:'Geosynchronous', height:49, baseThrust:6000, baseFuelMass:414, baseCost:47, maxCrew:0, reusable:false, firstFlight:'2001', description:'An expendable launch system operated by ISRO used for launching satellites into geostationary orbits.', cap:{LEO:5000,GTO:2700}, image: 'https://upload.wikimedia.org/wikipedia/commons/8/89/GSLV-F09_liftoff.jpg'},
   {id:'lvm3', agency:'ISRO', name:'LVM3', alias:'GSLV Mk III', accent:'#FB923C', tag:'Heavy Lift', height:43, baseThrust:9300, baseFuelMass:614, baseCost:46, maxCrew:3, reusable:false, firstFlight:'2014', description:'A three-stage medium-lift launch vehicle developed by ISRO for heavy payloads.', cap:{LEO:10000,GTO:4000}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/LVM3-M3_on_the_launch_pad.jpg'},
   {id:'lm2', agency:'CNSA', name:'Long March 2', alias:'CZ-2', accent:'#4ADE80', tag:'Legacy Lifter', height:42, baseThrust:2960, baseFuelMass:280, baseCost:30, maxCrew:3, reusable:false, firstFlight:'1974', description:'A family of expendable orbital launch vehicles operated by China, including the human-rated 2F.', cap:{LEO:8400,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Shenzhou-12_Launch.jpg'},
   {id:'lm3', agency:'CNSA', name:'Long March 3', alias:'CZ-3', accent:'#4ADE80', tag:'Geostationary', height:55, baseThrust:2960, baseFuelMass:400, baseCost:70, maxCrew:0, reusable:false, firstFlight:'1984', description:'A Chinese orbital launch vehicle series used primarily for launching spacecraft to geostationary transfer orbit.', cap:{LEO:11200,GTO:5500}, image: 'https://upload.wikimedia.org/wikipedia/commons/3/30/Long_March_3B_Y86_launching_Chinasat_6D.jpg'},
   {id:'lm4', agency:'CNSA', name:'Long March 4', alias:'CZ-4', accent:'#4ADE80', tag:'Polar Orbits', height:45, baseThrust:2960, baseFuelMass:250, baseCost:30, maxCrew:0, reusable:false, firstFlight:'1988', description:'Mainly used to launch meteorological and Earth observation satellites into sun-synchronous orbits.', cap:{LEO:4200,GTO:1500}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Long_March_5B_Y1_lifting_off.jpg'},
-  {id:'lm5', agency:'CNSA', name:'Long March 5', alias:'CZ-5', accent:'#4ADE80', tag:'Heavy lifter', height:57, baseThrust:10565, baseFuelMass:860, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2016', description:'A Chinese heavy-lift launch vehicle capable of delivering heavy payloads to LEO, the Moon, and Mars.', cap:{LEO:25000,GTO:14000}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Long_March_5B_Y1_lifting_off.jpg'},
+  {id:'lm5', agency:'CNSA', name:'Long March 5', accent:'#4ADE80', tag:'Heavy lifter', height:57, baseThrust:10565, baseFuelMass:860, baseCost:100, maxCrew:0, reusable:false, firstFlight:'2016', description:'Chinese heavy-lift launch vehicle.', cap:{LEO:25000,GTO:14000}, image: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Long_March_5B_Y1_lifting_off.jpg'},
   {id:'lm6', agency:'CNSA', name:'Long March 6', alias:'CZ-6', accent:'#4ADE80', tag:'Light liquid-fueled', height:29, baseThrust:1188, baseFuelMass:103, baseCost:15, maxCrew:0, reusable:false, firstFlight:'2015', description:'A Chinese liquid-fuelled carrier rocket developed for small satellite launches.', cap:{LEO:1500,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Electron_Still_Testing.jpg'}, 
   {id:'electron', agency:'RocketLab', name:'Electron', accent:'#F472B6', tag:'Small sat launcher', height:18, baseThrust:224, baseFuelMass:12, baseCost:7, maxCrew:0, reusable:true, firstFlight:'2017', description:'Dedicated small orbital launch vehicle for cube sats.', cap:{LEO:300,GTO:0}, image: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Electron_Still_Testing.jpg'}
 ];
 
 const SATELLITES = [
-  {id:'sun', name: 'Sol (The Sun)', type: 'G-Type Star', class: 'public', agency: 'Milky Way', mass: '1.98×10^30', orbit: 'Galactic Center', speed: 828000, firstFlight: '4.6 Billion Yrs', description: 'The star at the center of the Solar System. Warning: Close proximity causes catastrophic thermal damage to unsheathed assets.', image: 'https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg', color: '#FBBF24'},
-  {id:'mercury', name: 'Mercury', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '3.3×10^23', orbit: 'Sun', speed: 170500, firstFlight: '4.5 Billion Yrs', description: 'The smallest planet in the Solar System and the closest to the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/Mercury_in_true_color.jpg', color: '#aaaaaa'},
-  {id:'venus', name: 'Venus', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '4.8×10^24', orbit: 'Sun', speed: 126000, firstFlight: '4.5 Billion Yrs', description: 'The second planet from the Sun with a dense, toxic atmosphere.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e5/Venus-real_color.jpg', color: '#e3bb76'},
-  {id:'earth', name: 'Earth', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '5.9×10^24', orbit: 'Sun', speed: 107000, firstFlight: '4.5 Billion Yrs', description: 'The third planet from the Sun and the only astronomical object known to harbor life.', image: 'https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg', color: '#38BDF8'},
-  {id:'moon', name: 'Luna (The Moon)', type: 'Celestial Body', class: 'public', agency: 'Natural', mass: '7.3×10^22', orbit: 'Earth', speed: 3683, firstFlight: '4.5 Billion Yrs', description: 'Earth\'s only natural satellite and target for the Artemis program.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg', color: '#cccccc'},
-  {id:'mars', name: 'Mars', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '6.4×10^23', orbit: 'Sun', speed: 86871, firstFlight: '4.5 Billion Yrs', description: 'The fourth planet from the Sun. A dusty, cold, desert world.', image: 'https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg', color: '#F87171'},
-  {id:'jupiter', name: 'Jupiter', type: 'Gas Giant', class: 'public', agency: 'Solar System', mass: '1.8×10^27', orbit: 'Sun', speed: 47002, firstFlight: '4.5 Billion Yrs', description: 'The largest planet in the Solar System.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Jupiter.jpg', color: '#d39c7e'},
-  {id:'saturn', name: 'Saturn', type: 'Gas Giant', class: 'public', agency: 'Solar System', mass: '5.6×10^26', orbit: 'Sun', speed: 34821, firstFlight: '4.5 Billion Yrs', description: 'The sixth planet from the Sun, known for its prominent ring system.', image: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Saturn_during_Equinox.jpg', color: '#ead6b8'},
-  {id:'uranus', name: 'Uranus', type: 'Ice Giant', class: 'public', agency: 'Solar System', mass: '8.6×10^25', orbit: 'Sun', speed: 24477, firstFlight: '4.5 Billion Yrs', description: 'The seventh planet from the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Uranus2.jpg', color: '#818CF8'},
-  {id:'neptune', name: 'Neptune', type: 'Ice Giant', class: 'public', agency: 'Solar System', mass: '1.0×10^26', orbit: 'Sun', speed: 19566, firstFlight: '4.5 Billion Yrs', description: 'The eighth and farthest-known Solar planet from the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Neptune_-_Voyager_2_%282974187539%29_flatten_crop.jpg', color: '#2DD4BF'},
-  {id:'iss', name: 'International Space Station', type: 'Orbital Station', class: 'public', agency: 'NASA/Roscosmos', mass: '450,000', orbit: 'LEO', speed: 27600, firstFlight: '1998', description: 'A modular space station in low Earth orbit.', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/ISS_after_completion_of_STS-134.jpg', color: '#ffffff'},
-  {id:'tiangong', name: 'Tiangong Space Station', type: 'Orbital Station', class: 'public', agency: 'CNSA', mass: '100,000', orbit: 'LEO', speed: 27600, firstFlight: '2021', description: 'A space station constructed by China in low Earth orbit.', image: 'https://upload.wikimedia.org/wikipedia/commons/4/42/Tiangong_Space_Station_%282023-11-28%29.jpg', color: '#4ADE80'},
-  {id:'hubble', name: 'Hubble Space Telescope', type: 'Space Telescope', class: 'public', agency: 'NASA/ESA', mass: '11,110', orbit: 'LEO', speed: 27300, firstFlight: '1990', description: 'A space telescope launched into low Earth orbit in 1990.', image: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/HST-SM4.jpeg', color: '#FBBF24'},
-  {id:'starlink', name: 'Starlink Constellation', type: 'Comms Network', class: 'public', agency: 'SpaceX', mass: '260', orbit: 'LEO', speed: 27000, firstFlight: '2019', description: 'A satellite internet constellation operated by SpaceX.', image: 'https://upload.wikimedia.org/wikipedia/commons/d/dd/Starlink_Mission_%2847926144123%29.jpg', color: '#38BDF8'},
+  {id:'sun', name: 'Sol', type: 'Star', class: 'public', agency: 'Milky Way', mass: '1.98×10^30', orbit: 'Galactic Center', speed: 828000, firstFlight: '4.6B Yrs', description: 'Center of Solar System.', image: 'https://upload.wikimedia.org/wikipedia/commons/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg', color: '#FBBF24'},
+  {id:'mercury', name: 'Mercury', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '3.3×10^23', orbit: 'Sun', speed: 170500, firstFlight: '4.5B Yrs', description: 'The smallest planet in the Solar System and the closest to the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/Mercury_in_true_color.jpg', color: '#aaaaaa'},
+  {id:'venus', name: 'Venus', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '4.8×10^24', orbit: 'Sun', speed: 126000, firstFlight: '4.5B Yrs', description: 'The second planet from the Sun with a dense, toxic atmosphere.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e5/Venus-real_color.jpg', color: '#e3bb76'},
+  {id:'earth', name: 'Earth', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '5.9×10^24', orbit: 'Sun', speed: 107000, firstFlight: '4.5B Yrs', description: 'The third planet from the Sun and the only astronomical object known to harbor life.', image: 'https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg', color: '#38BDF8'},
+  {id:'moon', name: 'Luna', type: 'Moon', class: 'public', agency: 'Natural', mass: '7.3×10^22', orbit: 'Earth', speed: 3683, firstFlight: '4.5B Yrs', description: 'Earth\'s natural satellite.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg', color: '#cccccc'},
+  {id:'mars', name: 'Mars', type: 'Terrestrial Planet', class: 'public', agency: 'Solar System', mass: '6.4×10^23', orbit: 'Sun', speed: 86871, firstFlight: '4.5B Yrs', description: 'The fourth planet from the Sun. A dusty, cold, desert world.', image: 'https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg', color: '#F87171'},
+  {id:'jupiter', name: 'Jupiter', type: 'Gas Giant', class: 'public', agency: 'Solar System', mass: '1.8×10^27', orbit: 'Sun', speed: 47002, firstFlight: '4.5B Yrs', description: 'Largest planet.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Jupiter.jpg', color: '#d39c7e'},
+  {id:'saturn', name: 'Saturn', type: 'Gas Giant', class: 'public', agency: 'Solar System', mass: '5.6×10^26', orbit: 'Sun', speed: 34821, firstFlight: '4.5B Yrs', description: 'Sixth planet, ringed.', image: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Saturn_during_Equinox.jpg', color: '#ead6b8'},
+  {id:'uranus', name: 'Uranus', type: 'Ice Giant', class: 'public', agency: 'Solar System', mass: '8.6×10^25', orbit: 'Sun', speed: 24477, firstFlight: '4.5B Yrs', description: 'Seventh planet from the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Uranus2.jpg', color: '#818CF8'},
+  {id:'neptune', name: 'Neptune', type: 'Ice Giant', class: 'public', agency: 'Solar System', mass: '1.0×10^26', orbit: 'Sun', speed: 19566, firstFlight: '4.5B Yrs', description: 'Eighth planet from the Sun.', image: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Neptune_-_Voyager_2_%282974187539%29_flatten_crop.jpg', color: '#2DD4BF'},
+  
+  {id:'phobos', name: 'Phobos', type: 'Moon', class: 'public', agency: 'Natural', mass: '1.0×10^16', orbit: 'Mars', speed: 7668, firstFlight: '4.5B Yrs', description: 'Innermost and larger moon of Mars.', image: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Phobos_colour_2008.jpg', color: '#aaaaaa'},
+  {id:'deimos', name: 'Deimos', type: 'Moon', class: 'public', agency: 'Natural', mass: '1.4×10^15', orbit: 'Mars', speed: 4860, firstFlight: '4.5B Yrs', description: 'Smaller and outermost moon of Mars.', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8d/Deimos-MRO.jpg', color: '#888888'},
+  {id:'io', name: 'Io', type: 'Moon', class: 'public', agency: 'Natural', mass: '8.9×10^22', orbit: 'Jupiter', speed: 62400, firstFlight: '4.5B Yrs', description: 'Volcanically active body in the Solar System.', image: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Io_highest_resolution_true_color.jpg', color: '#dddddd'},
+  {id:'europa', name: 'Europa', type: 'Moon', class: 'public', agency: 'Natural', mass: '4.8×10^22', orbit: 'Jupiter', speed: 49464, firstFlight: '4.5B Yrs', description: 'Believed to have a global ocean of water.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e4/Europa-moon-with-margins.jpg', color: '#aaaaaa'},
+  {id:'ganymede', name: 'Ganymede', type: 'Moon', class: 'public', agency: 'Natural', mass: '1.4×10^23', orbit: 'Jupiter', speed: 39168, firstFlight: '4.5B Yrs', description: 'Largest and most massive moon of Jupiter.', image: 'https://upload.wikimedia.org/wikipedia/commons/f/f2/Ganymede_g1_true.jpg', color: '#cccccc'},
+  {id:'callisto', name: 'Callisto', type: 'Moon', class: 'public', agency: 'Natural', mass: '1.0×10^23', orbit: 'Jupiter', speed: 29520, firstFlight: '4.5B Yrs', description: 'Second-largest moon of Jupiter.', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Callisto.jpg', color: '#bbbbbb'},
+  {id:'titan', name: 'Titan', type: 'Moon', class: 'public', agency: 'Natural', mass: '1.3×10^23', orbit: 'Saturn', speed: 20052, firstFlight: '4.5B Yrs', description: 'Largest moon of Saturn, dense atmosphere.', image: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Titan_in_true_color.jpg', color: '#eeddaa'},
+  {id:'enceladus', name: 'Enceladus', type: 'Moon', class: 'public', agency: 'Natural', mass: '1.0×10^20', orbit: 'Saturn', speed: 45360, firstFlight: '4.5B Yrs', description: 'Icy moon of Saturn with active geysers.', image: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Enceladus_stripes_1_color.jpg', color: '#cccccc'},
+  {id:'titania', name: 'Titania', type: 'Moon', class: 'public', agency: 'Natural', mass: '3.5×10^21', orbit: 'Uranus', speed: 13104, firstFlight: '4.5B Yrs', description: 'Largest of the moons of Uranus.', image: 'https://upload.wikimedia.org/wikipedia/commons/6/6f/Titania_color.jpg', color: '#cccccc'},
+  {id:'oberon', name: 'Oberon', type: 'Moon', class: 'public', agency: 'Natural', mass: '3.0×10^21', orbit: 'Uranus', speed: 11340, firstFlight: '4.5B Yrs', description: 'Outermost major moon of Uranus.', image: 'https://upload.wikimedia.org/wikipedia/commons/2/23/Oberon_color.jpg', color: '#aaaaaa'},
+  {id:'triton', name: 'Triton', type: 'Moon', class: 'public', agency: 'Natural', mass: '2.1×10^22', orbit: 'Neptune', speed: 15804, firstFlight: '4.5B Yrs', description: 'Largest natural satellite of Neptune.', image: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Triton_moon_mosaic_Voyager_2_%28large%29.jpg', color: '#aaaaaa'},
+
+  {id:'iss', name: 'ISS', type: 'Station', class: 'public', agency: 'NASA', mass: '450,000', orbit: 'LEO', speed: 27600, firstFlight: '1998', description: 'Modular space station.', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/ISS_after_completion_of_STS-134.jpg', color: '#ffffff'},
+  {id:'tiangong', name: 'Tiangong', type: 'Station', class: 'public', agency: 'CNSA', mass: '100,000', orbit: 'LEO', speed: 27600, firstFlight: '2021', description: 'Chinese space station.', image: 'https://upload.wikimedia.org/wikipedia/commons/4/42/Tiangong_Space_Station_%282023-11-28%29.jpg', color: '#4ADE80'},
+  {id:'hubble', name: 'Hubble', type: 'Telescope', class: 'public', agency: 'NASA', mass: '11,110', orbit: 'LEO', speed: 27300, firstFlight: '1990', description: 'Space telescope.', image: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/HST-SM4.jpeg', color: '#FBBF24'},
+  {id:'starlink', name: 'Starlink', type: 'Comms Network', class: 'public', agency: 'SpaceX', mass: '260', orbit: 'LEO', speed: 27000, firstFlight: '2019', description: 'Satellite internet constellation.', image: 'https://upload.wikimedia.org/wikipedia/commons/d/dd/Starlink_Mission_%2847926144123%29.jpg', color: '#38BDF8'},
   {id:'gps', name: 'GPS Block III', type: 'Navigation', class: 'public', agency: 'US Space Force', mass: '3,880', orbit: 'MEO', speed: 13900, firstFlight: '2018', description: 'Global Positioning System satellites.', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/GPS_Block_IIIA.jpg', color: '#818CF8'},
-  {id:'galileo', name: 'Galileo Constellation', type: 'Navigation', class: 'public', agency: 'ESA', mass: '733', orbit: 'MEO', speed: 13200, firstFlight: '2011', description: 'Europe’s own global navigation satellite system.', image: 'https://upload.wikimedia.org/wikipedia/commons/6/64/Galileo_satellite_artist_impression.jpg', color: '#2DD4BF'},
-  {id:'goes', name: 'GOES-18', type: 'Weather Observation', class: 'public', agency: 'NOAA / NASA', mass: '5,192', orbit: 'GEO', speed: 11050, firstFlight: '2022', description: 'Advanced imagery and atmospheric measurements.', image: 'https://upload.wikimedia.org/wikipedia/commons/0/07/GOES-16_satellite.jpg', color: '#FBBF24'},
-  {id:'syracuse', name: 'Syracuse 4A', type: 'Military Comms', class: 'public', agency: 'French MoD', mass: '3,800', orbit: 'GEO', speed: 11050, firstFlight: '2021', description: 'A French military communications satellite.', image: 'https://upload.wikimedia.org/wikipedia/commons/b/bb/Syracuse_4A.jpg', color: '#2DD4BF'},
-  {id:'chandra', name: 'Chandra X-ray', type: 'Space Telescope', class: 'public', agency: 'NASA', mass: '4,800', orbit: 'HEO', speed: 25000, firstFlight: '1999', description: 'A Flagship-class space telescope launched on STS-93.', image: 'https://upload.wikimedia.org/wikipedia/commons/7/75/Chandra_X-ray_Observatory.jpg', color: '#FBBF24'},
-  {id:'jwst', name: 'James Webb Space Telescope', type: 'Deep Space Observatory', class: 'public', agency: 'NASA / ESA', mass: '6,161', orbit: 'L2 Halo', speed: 1000, firstFlight: '2021', description: 'The largest optical telescope in space.', image: 'https://upload.wikimedia.org/wikipedia/commons/c/c2/James_Webb_Space_Telescope_2021.jpg', color: '#FBBF24'},
-  {id:'usa326', name: 'USA-326 / NROL-87', type: 'Reconnaissance', class: 'classified', agency: 'NRO (USA)', mass: '---', orbit: 'LEO', speed: 27500, firstFlight: '2022', description: '[ CLASSIFIED NRO ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://upload.wikimedia.org/wikipedia/commons/a/af/NROL-44_Launch_%28201210-F-F3456-1002%29.jpg', color: '#EF4444'},
-  {id:'kosmos', name: 'Kosmos 2558', type: 'Reconnaissance', class: 'classified', agency: 'Russian MoD', mass: '---', orbit: 'SSO', speed: 27400, firstFlight: '2022', description: '[ CLASSIFIED RUSSIAN ASSET // INTEL REDACTED // OPERATION DETAILS STRICTLY CONFIDENTIAL ]', image: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Soyuz-FG_launch_vehicle_rolls_out_to_the_launch_pad.jpg', color: '#EF4444'},
-  {id:'vanguard', name: 'Vanguard 1', type: 'Historical Relic', class: 'public', agency: 'US Navy', mass: '1.47', orbit: 'MEO', speed: 25000, firstFlight: '1958', description: 'The oldest human-made object still in orbit. Communication lost in 1964.', image: 'https://upload.wikimedia.org/wikipedia/commons/2/25/Vanguard_1.jpg', color: '#aaaaaa'}
+  {id:'galileo', name: 'Galileo', type: 'Navigation', class: 'public', agency: 'ESA', mass: '733', orbit: 'MEO', speed: 13200, firstFlight: '2011', description: 'European global navigation system.', image: 'https://upload.wikimedia.org/wikipedia/commons/6/64/Galileo_satellite_artist_impression.jpg', color: '#2DD4BF'},
+  {id:'goes', name: 'GOES-18', type: 'Weather Obs', class: 'public', agency: 'NOAA / NASA', mass: '5,192', orbit: 'GEO', speed: 11050, firstFlight: '2022', description: 'Advanced atmospheric measurements.', image: 'https://upload.wikimedia.org/wikipedia/commons/0/07/GOES-16_satellite.jpg', color: '#FBBF24'},
+  {id:'syracuse', name: 'Syracuse 4A', type: 'Military Comms', class: 'public', agency: 'French MoD', mass: '3,800', orbit: 'GEO', speed: 11050, firstFlight: '2021', description: 'Military communications satellite.', image: 'https://upload.wikimedia.org/wikipedia/commons/b/bb/Syracuse_4A.jpg', color: '#2DD4BF'},
+  {id:'chandra', name: 'Chandra X-ray', type: 'Space Telescope', class: 'public', agency: 'NASA', mass: '4,800', orbit: 'HEO', speed: 25000, firstFlight: '1999', description: 'Flagship-class space telescope.', image: 'https://upload.wikimedia.org/wikipedia/commons/7/75/Chandra_X-ray_Observatory.jpg', color: '#FBBF24'},
+  {id:'jwst', name: 'James Webb', type: 'Deep Space', class: 'public', agency: 'NASA / ESA', mass: '6,161', orbit: 'L2 Halo', speed: 1000, firstFlight: '2021', description: 'The largest optical telescope in space.', image: 'https://upload.wikimedia.org/wikipedia/commons/c/c2/James_Webb_Space_Telescope_2021.jpg', color: '#FBBF24'},
+  {id:'usa326', name: 'USA-326', type: 'Reconnaissance', class: 'classified', agency: 'NRO (USA)', mass: '---', orbit: 'LEO', speed: 27500, firstFlight: '2022', description: '[ CLASSIFIED NRO ASSET // INTEL REDACTED ]', image: 'https://upload.wikimedia.org/wikipedia/commons/a/af/NROL-44_Launch_%28201210-F-F3456-1002%29.jpg', color: '#EF4444'},
+  {id:'kosmos', name: 'Kosmos 2558', type: 'Reconnaissance', class: 'classified', agency: 'Russian MoD', mass: '---', orbit: 'SSO', speed: 27400, firstFlight: '2022', description: '[ CLASSIFIED RUSSIAN ASSET // INTEL REDACTED ]', image: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Soyuz-FG_launch_vehicle_rolls_out_to_the_launch_pad.jpg', color: '#EF4444'},
+  {id:'vanguard', name: 'Vanguard 1', type: 'Historical Relic', class: 'public', agency: 'US Navy', mass: '1.47', orbit: 'MEO', speed: 25000, firstFlight: '1958', description: 'Oldest human-made object in orbit.', image: 'https://upload.wikimedia.org/wikipedia/commons/2/25/Vanguard_1.jpg', color: '#aaaaaa'}
 ];
 
 const AGENCIES = ['All', 'SpaceX', 'NASA', 'ULA', 'ESA', 'Roscosmos', 'ISRO', 'CNSA', 'RocketLab'];
@@ -381,8 +506,8 @@ const S_AGENCIES = ['All', 'Planets', 'NASA', 'ESA', 'Roscosmos', 'SpaceX', 'CNS
 const AGENCY_COLORS = {SpaceX:'#38BDF8',NASA:'#FBBF24',ULA:'#818CF8',ESA:'#2DD4BF',Roscosmos:'#F87171',ISRO:'#FB923C',JAXA:'#C084FC',CNSA:'#4ADE80',RocketLab:'#F472B6'};
 
 let PADS = [
-  {id:'slc40', name:'Cape Canaveral SLC-40', lat:28.56, lng:-80.58, color:'#38BDF8'}, {id:'lc39a', name:'Kennedy LC-39A', lat:28.61, lng:-80.60, color:'#38BDF8'},
-  {id:'vafb', name:'Vandenberg SLC-4E', lat:34.63, lng:-120.61, color:'#38BDF8'}, {id:'kourou', name:'Kourou ELA-3', lat:5.24, lng:-52.77, color:'#2DD4BF'},
+  {id:'slc40', name:'Cape Canaveral', lat:28.56, lng:-80.58, color:'#38BDF8'}, {id:'lc39a', name:'Kennedy', lat:28.61, lng:-80.60, color:'#38BDF8'},
+  {id:'vafb', name:'Vandenberg', lat:34.63, lng:-120.61, color:'#38BDF8'}, {id:'kourou', name:'Kourou', lat:5.24, lng:-52.77, color:'#2DD4BF'},
   {id:'baikonur', name:'Baikonur Site 31/6', lat:45.92, lng:63.34, color:'#F87171'}, {id:'vostochny', name:'Vostochny Site 1S', lat:51.88, lng:128.33, color:'#F87171'},
   {id:'satish', name:'Satish Dhawan SLP', lat:13.73, lng:80.24, color:'#FB923C'}, {id:'jiuquan', name:'Jiuquan SLS-2', lat:40.96, lng:100.29, color:'#4ADE80'},
   {id:'wenchang', name:'Wenchang LC-1', lat:19.61, lng:110.95, color:'#4ADE80'}, {id:'mahia', name:'Mahia LC-1A', lat:-39.26, lng:177.86, color:'#F472B6'}
@@ -403,9 +528,7 @@ const TLE_DATA = {
   vanguard: ["1 00005U 58002B   23292.50000000  .00012345  00000+0  12345-3 0  9996", "2 00005  34.2500 123.4567 1845678 123.4567 234.5678 10.85678901 12345"]
 };
 
-function safeSatrec(tle1, tle2) {
-    try { return satellite.twoline2satrec(tle1, tle2); } catch(e) { return null; }
-}
+function safeSatrec(tle1, tle2) { try { return satellite.twoline2satrec(tle1, tle2); } catch(e) { return null; } }
 
 let UPCOMING = []; let ACTIVE_CREW = []; let historicalLaunches = []; 
 
@@ -424,15 +547,9 @@ async function fetchAllData() {
         let l = upData.results.map(launch => {
             let lat = parseFloat(launch.pad?.latitude); let lng = parseFloat(launch.pad?.longitude);
             let agency = launch.launch_service_provider?.name || 'Unknown';
-            if(isNaN(lat) || isNaN(lng)) {
-                let fallback = PADS.find(p => p.color === AGENCY_COLORS[agency]) || PADS[0];
-                lat = fallback.lat; lng = fallback.lng;
-            }
+            if(isNaN(lat) || isNaN(lng)) { let fallback = PADS[0]; lat = fallback.lat; lng = fallback.lng; }
             return {
-              id: launch.id, name: launch.name.split('|')[1]?.trim() || launch.name,
-              vehicle: launch.rocket?.configuration?.name || 'Unknown', pad: launch.pad?.location?.name || launch.pad?.name || 'Unknown',
-              agency: agency, dest: launch.mission?.orbit?.abbrev || 'LEO',
-              t: new Date(launch.net).getTime(), type: 'launch', lat: lat, lng: lng
+              id: launch.id, name: launch.name.split('|')[1]?.trim() || launch.name, vehicle: launch.rocket?.configuration?.name || 'Unknown', pad: launch.pad?.location?.name || launch.pad?.name || 'Unknown', agency: agency, dest: launch.mission?.orbit?.abbrev || 'LEO', t: new Date(launch.net).getTime(), type: 'launch', lat: lat, lng: lng
             };
         });
         UPCOMING.push(...l);
@@ -479,9 +596,7 @@ async function fetchAllData() {
         ACTIVE_CREW = crewData.results.map(c => ({ name: c.name, agency: c.agency?.abbrev || c.agency?.name || 'Unknown', nationality: c.nationality, image: c.profile_image_thumbnail }));
       }
     }
-
   } catch (error) {}
-  
   if(window.drawPads) window.drawPads();
   buildUpcoming(); buildLiveCommand(); processLaunchQueue();
 }
@@ -495,7 +610,6 @@ const padGroup = new THREE.Group();
 const orbitGroup = new THREE.Group(); 
 const macroSolarGroup = new THREE.Group();
 const interactableOrbitals = []; 
-
 const leoGroup = new THREE.Group();
 const meoGroup = new THREE.Group();
 const geoGroup = new THREE.Group();
@@ -509,9 +623,7 @@ let trackingOffset = new THREE.Vector3(0, 5, 20);
 
 window.toggleGlobeView = function() {
     viewMode = (viewMode + 1) % 2; 
-    isSolarSystem = false;
-    trackedPlanet = null;
-
+    isSolarSystem = false; trackedPlanet = null;
     const btn = document.getElementById('view-toggle-btn');
     const icon = document.getElementById('view-icon');
     const label = document.getElementById('view-label');
@@ -521,42 +633,28 @@ window.toggleGlobeView = function() {
     if (viewMode === 0) { 
       btn.style.background = 'rgba(255,255,255,0.05)'; btn.style.borderColor = 'rgba(255,255,255,0.2)';
       icon.textContent = '◎'; icon.style.color = '#F97316'; label.textContent = 'LAUNCH VIEW';
-      
       globeMain.visible = true; padGroup.visible = true; 
       orbitGroup.visible = false; macroSolarGroup.visible = false;
       fleetHdr.textContent = 'Spacecraft Fleet';
       legend.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="color:#38BDF8; font-size:14px;">▲</span><span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:bold;">Active Launches</span></div><div style="display:flex;align-items:center;gap:6px;"><div style="width:12px; height:12px; border-radius:50%; border:1px solid #fff; opacity:0.6; display:flex; align-items:center; justify-content:center;"><div style="width:2px; height:2px; background:#fff; border-radius:50%;"></div></div><span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:bold;">Projected Corridors</span></div>`;
-      
-      targetCamPos.set(0, 1.0, 2.6);
-      targetCamLook.set(0, hudVisible ? 0 : -0.5, 0); 
-      
+      targetCamPos.set(0, 1.0, 2.6); targetCamLook.set(0, hudVisible ? 0 : -0.5, 0); 
       state.selectionType = 'rocket'; state.selectedId = ROCKETS[0].id; state.agency = 'All'; 
       if(window.updatePersistentLines) window.updatePersistentLines(state.selectedId);
-      pushLog("VIEWPORT RECONFIGURED: LAUNCH VIEW");
       
     } else if (viewMode === 1) { 
       btn.style.background = 'rgba(255,255,255,0.15)'; btn.style.borderColor = '#FBBF24';
       icon.textContent = '✧'; icon.style.color = '#FBBF24'; label.textContent = 'ORBITAL VIEW';
-      
       globeMain.visible = true; padGroup.visible = false; 
       orbitGroup.visible = true; macroSolarGroup.visible = false;
       fleetHdr.textContent = 'Orbital Assets';
-      
       legend.innerHTML = `
-        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#4ADE80; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">LEO Swarms (Starlink)</span></div>
-        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#818CF8; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">MEO (GPS/GNSS)</span></div>
-        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#FBBF24; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">GEO (Telecom/Weather)</span></div>
-        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#ffffff;">■</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">Tracked Assets</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#4ADE80; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">LEO</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#818CF8; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">MEO</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="color:#FBBF24; font-size:14px;">•</span><span style="font-size:9px;color:rgba(255,255,255,0.6);font-weight:bold;">GEO</span></div>
       `;
-      
-      targetCamPos.set(0, 2.0, 6.0);
-      targetCamLook.set(0, hudVisible ? 0 : -0.5, 0);
-
+      targetCamPos.set(0, 2.0, 6.0); targetCamLook.set(0, hudVisible ? 0 : -0.5, 0);
       state.selectionType = 'satellite'; state.selectedId = 'iss'; state.agency = 'All'; 
-      pushLog("VIEWPORT RECONFIGURED: ORBITAL VIEW");
     }
-    
-    if(window.updatePersistentLines) { document.getElementById('globe-mount').querySelector('canvas').dispatchEvent(new Event('click')); window.updatePersistentLines(viewMode === 0 ? state.selectedId : null); }
     setCmdTab('intel'); render();
 };
 
@@ -567,21 +665,15 @@ function toggleHUD() {
   const icon = document.getElementById('hud-icon');
 
   if (!hudVisible) {
-    globeDiv.style.height = "100%";
-    panelsArea.style.transform = "translateY(120%)";
-    icon.textContent = "✖";
+    globeDiv.style.height = "100%"; panelsArea.style.transform = "translateY(120%)"; icon.textContent = "✖";
     targetCamLook.set(0, -0.5, 0); 
-    pushLog("HUD DISABLED. ENTERING CINEMATIC FLYBY.");
   } else {
-    panelsArea.style.transform = "translateY(0)";
-    icon.textContent = "👁";
-    targetCamLook.set(0, 0, 0);
-    evaluateLayout(); 
-    pushLog("HUD ENABLED. RESUMING MANUAL CONTROL.");
+    panelsArea.style.transform = "translateY(0)"; icon.textContent = "👁";
+    targetCamLook.set(0, 0, 0); evaluateLayout(); 
   }
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 600);
 }
 
-// Ensure WebGL resizes constantly when layout transitions are happening
 const resizeObserver = new ResizeObserver(() => {
     if(window.appCamera && window.appRenderer && document.getElementById('globe-mount')) {
         const el = document.getElementById('globe-mount');
@@ -609,35 +701,26 @@ resizeObserver.observe(document.getElementById('globe-area'));
   globeMain.add(padGroup); globeMain.add(orbitGroup); orbitGroup.visible = false;
 
   const txLoader = new THREE.TextureLoader();
+  txLoader.setCrossOrigin('anonymous'); 
   const getTx = (name) => txLoader.load(`https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/${name}`);
 
-  const earthMat = new THREE.MeshPhongMaterial({
-      map: getTx('earthmap1k.jpg'),
-      bumpMap: getTx('earthbump1k.jpg'),
-      bumpScale: 0.015,
-      specularMap: getTx('earthspec1k.jpg'),
-      specular: new THREE.Color(0x333333),
-      shininess: 0
-  });
+  const earthMat = new THREE.MeshPhongMaterial({ map: getTx('earthmap1k.jpg'), bumpMap: getTx('earthbump1k.jpg'), bumpScale: 0.015, specularMap: getTx('earthspec1k.jpg'), specular: new THREE.Color(0x333333), shininess: 15 });
   globeMain.add(new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), earthMat));
 
   [{r:1.01,c:0x3a8fff,o:0.15},{r:1.03,c:0x2266cc,o:0.08},{r:1.06,c:0x0d44aa,o:0.04}].forEach(function(a){
     globeMain.add(new THREE.Mesh(new THREE.SphereGeometry(a.r,48,48), new THREE.MeshPhongMaterial({color:a.c,transparent:true,opacity:a.o,side:THREE.FrontSide})));
   });
-  globeMain.add(new THREE.Mesh(new THREE.SphereGeometry(1.08,48,48), new THREE.MeshBasicMaterial({color:0x1a5aff,transparent:true,opacity:0.05,side:THREE.BackSide})));
 
   var sunLight=new THREE.DirectionalLight(0xffffee, 2.5); sunLight.position.set(-30, 0, 0); scene.add(sunLight);
   scene.add(new THREE.AmbientLight(0x404452, 0.6)); 
-  var rim=new THREE.DirectionalLight(0x4477ff, 1.5); rim.position.set(30, 10, 20); scene.add(rim);
 
   // SOLAR SYSTEM
-  macroSolarGroup.position.set(1000, 0, 0); 
-  macroSolarGroup.visible = false;
-  scene.add(macroSolarGroup);
-
-  var macroSunLight = new THREE.PointLight(0xffffee, 4.0, 500);
+  macroSolarGroup.position.set(1000, 0, 0); macroSolarGroup.visible = false; scene.add(macroSolarGroup);
+  
+  // Point light for the sun, zero distance means it lights the whole system cleanly
+  var macroSunLight = new THREE.PointLight(0xffffee, 6.0, 0); 
   macroSolarGroup.add(macroSunLight);
-  macroSolarGroup.add(new THREE.AmbientLight(0x404040, 0.8));
+  macroSolarGroup.add(new THREE.AmbientLight(0x404040, 1.2)); // Higher ambient so planets are clearly visible
 
   // THE SUN 
   const sunCore = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 32), new THREE.MeshBasicMaterial({color: 0xfffae6}));
@@ -646,20 +729,19 @@ resizeObserver.observe(document.getElementById('globe-area'));
   interactableOrbitals.push(sunHitbox); macroSolarGroup.add(sunHitbox);
   macroSolarGroup.add(sunCore);
   
-  // SUN CORONA GLOW (Fixed Additive Blending and Depth Write)
-  macroSolarGroup.add(new THREE.Mesh(new THREE.SphereGeometry(12, 32, 32), new THREE.MeshBasicMaterial({color: 0xffaa00, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false})));
-  macroSolarGroup.add(new THREE.Mesh(new THREE.SphereGeometry(15, 32, 32), new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false})));
-  macroSolarGroup.add(new THREE.Mesh(new THREE.SphereGeometry(20, 32, 32), new THREE.MeshBasicMaterial({color: 0xff2200, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false})));
+  // Fixed depth write blending for corona
+  macroSolarGroup.add(new THREE.Mesh(new THREE.SphereGeometry(12, 32, 32), new THREE.MeshBasicMaterial({color: 0xffaa00, transparent: true, opacity: 0.15, depthWrite: false})));
+  macroSolarGroup.add(new THREE.Mesh(new THREE.SphereGeometry(15, 32, 32), new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.05, depthWrite: false})));
 
   const planetsData = [
      {id: 'mercury', d: 18, s: 0.4, tx: 'mercurymap.jpg', speed: 0.008},
      {id: 'venus', d: 26, s: 0.9, tx: 'venusmap.jpg', speed: 0.006},
-     {id: 'earth', d: 35, s: 1.0, tx: 'earthmap1k.jpg', speed: 0.004, moons: [{dist: 2.5, size: 0.25, speed: 0.02, color: 0xcccccc}]},
-     {id: 'mars', d: 45, s: 0.5, tx: 'marsmap1k.jpg', speed: 0.003, moons: [{dist: 1.2, size: 0.1, speed: 0.03, color: 0xaaaaaa}, {dist: 1.8, size: 0.08, speed: 0.02, color: 0x888888}]},
-     {id: 'jupiter', d: 75, s: 5.0, tx: 'jupitermap.jpg', speed: 0.0015, moons: [{dist: 6.5, size: 0.3, speed: 0.015, color: 0xdddddd}, {dist: 8, size: 0.25, speed: 0.01, color: 0xaaaaaa}, {dist: 10.5, size: 0.35, speed: 0.008, color: 0xcccccc}, {dist: 13, size: 0.3, speed: 0.005, color: 0xbbbbbb}]},
-     {id: 'saturn', d: 105, s: 4.2, tx: 'saturnmap.jpg', speed: 0.001, ring: [5.5, 9.0], rc: 0xd2c3a3, moons: [{dist: 12, size: 0.4, speed: 0.01, color: 0xeeddaa}, {dist: 15, size: 0.2, speed: 0.007, color: 0xcccccc}]},
-     {id: 'uranus', d: 135, s: 2.0, tx: 'uranusmap.jpg', speed: 0.0008, ring: [2.5, 3.5], rc: 0xa9c3c9, moons: [{dist: 5, size: 0.15, speed: 0.012, color: 0xcccccc}, {dist: 6.5, size: 0.18, speed: 0.009, color: 0xaaaaaa}]},
-     {id: 'neptune', d: 165, s: 1.9, tx: 'neptunemap.jpg', speed: 0.0005, moons: [{dist: 5.5, size: 0.25, speed: 0.01, color: 0xaaaaaa}]}
+     {id: 'earth', d: 35, s: 1.0, tx: 'earthmap1k.jpg', speed: 0.004, moons: [{id: 'moon', dist: 2.5, size: 0.25, speed: 0.02, color: 0xcccccc}]},
+     {id: 'mars', d: 45, s: 0.5, tx: 'marsmap1k.jpg', speed: 0.003, moons: [{id: 'phobos', dist: 1.2, size: 0.1, speed: 0.03, color: 0xaaaaaa}, {id: 'deimos', dist: 1.8, size: 0.08, speed: 0.02, color: 0x888888}]},
+     {id: 'jupiter', d: 75, s: 5.0, tx: 'jupitermap.jpg', speed: 0.0015, moons: [{id: 'io', dist: 6.5, size: 0.3, speed: 0.015, color: 0xdddddd}, {id: 'europa', dist: 8, size: 0.25, speed: 0.01, color: 0xaaaaaa}, {id: 'ganymede', dist: 10.5, size: 0.35, speed: 0.008, color: 0xcccccc}, {id: 'callisto', dist: 13, size: 0.3, speed: 0.005, color: 0xbbbbbb}]},
+     {id: 'saturn', d: 105, s: 4.2, tx: 'saturnmap.jpg', speed: 0.001, ring: [5.5, 9.0], rc: 0xd2c3a3, moons: [{id: 'titan', dist: 12, size: 0.4, speed: 0.01, color: 0xeeddaa}, {id: 'enceladus', dist: 15, size: 0.2, speed: 0.007, color: 0xcccccc}]},
+     {id: 'uranus', d: 135, s: 2.0, tx: 'uranusmap.jpg', speed: 0.0008, ring: [2.5, 3.5], rc: 0xa9c3c9, moons: [{id: 'titania', dist: 5, size: 0.15, speed: 0.012, color: 0xcccccc}, {id: 'oberon', dist: 6.5, size: 0.18, speed: 0.009, color: 0xaaaaaa}]},
+     {id: 'neptune', d: 165, s: 1.9, tx: 'neptunemap.jpg', speed: 0.0005, moons: [{id: 'triton', dist: 5.5, size: 0.25, speed: 0.01, color: 0xaaaaaa}]}
   ];
 
   window.backgroundPlanets = [];
@@ -668,15 +750,11 @@ resizeObserver.observe(document.getElementById('globe-area'));
      path.rotation.x = Math.PI / 2; macroSolarGroup.add(path);
      
      const pGroup = new THREE.Group(); 
-     
-     const pMat = new THREE.MeshStandardMaterial({ map: getTx(p.tx), roughness: 0.8, metalness: 0.1 });
-     const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.s, 32, 32), pMat);
+     const pMesh = new THREE.Mesh(new THREE.SphereGeometry(p.s, 32, 32), new THREE.MeshStandardMaterial({ map: getTx(p.tx), roughness: 0.8 }));
      pMesh.position.x = p.d; 
      
      const pHitbox = new THREE.Mesh(new THREE.SphereGeometry(Math.max(p.s * 1.5, 2.0), 16, 16), new THREE.MeshBasicMaterial({visible: false}));
-     pHitbox.position.x = p.d;
-     pHitbox.userData = { id: p.id };
-     interactableOrbitals.push(pHitbox);
+     pHitbox.position.x = p.d; pHitbox.userData = { id: p.id }; interactableOrbitals.push(pHitbox);
      
      pGroup.add(pMesh); pGroup.add(pHitbox);
 
@@ -684,22 +762,14 @@ resizeObserver.observe(document.getElementById('globe-area'));
          p.moons.forEach(m => {
              const moonPivot = new THREE.Group();
              moonPivot.position.x = p.d; 
-             
              const mMesh = new THREE.Mesh(new THREE.SphereGeometry(m.size, 16, 16), new THREE.MeshStandardMaterial({color: m.color, roughness: 0.9}));
              mMesh.position.x = m.dist; 
-             
              const mHitbox = new THREE.Mesh(new THREE.SphereGeometry(Math.max(m.size * 2, 0.5), 8, 8), new THREE.MeshBasicMaterial({visible: false}));
-             mHitbox.position.x = m.dist;
-             mHitbox.userData = { id: 'moon' };
-             interactableOrbitals.push(mHitbox);
-             
+             mHitbox.position.x = m.dist; mHitbox.userData = { id: m.id }; interactableOrbitals.push(mHitbox);
              const mLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, m.dist, m.dist, 0, 2 * Math.PI, false, 0).getPoints(64)), new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.1}));
              mLine.rotation.x = Math.PI / 2;
-             
              moonPivot.add(mMesh); moonPivot.add(mHitbox); moonPivot.add(mLine);
-             
-             pGroup.add(moonPivot);
-             window.backgroundPlanets.push({ group: moonPivot, speed: m.speed }); 
+             pGroup.add(moonPivot); window.backgroundPlanets.push({ group: moonPivot, speed: m.speed }); 
          });
      }
 
@@ -710,64 +780,37 @@ resizeObserver.observe(document.getElementById('globe-area'));
      macroSolarGroup.add(pGroup); pGroup.rotation.y = Math.random() * Math.PI * 2; window.backgroundPlanets.push({group: pGroup, speed: p.speed});
   });
 
-  // TRUE 3D ASTEROID FIELD (Scattered everywhere from Sun to deep space)
-  const astGeo = new THREE.BufferGeometry();
-  const astCount = 20000;
-  const astPos = new Float32Array(astCount * 3);
-  const astColor = new Float32Array(astCount * 3);
+  // SHRUNKEN 3D ASTEROID FIELD
+  const astCount = 8000;
+  const astGeo = new THREE.IcosahedronGeometry(0.02, 0); 
+  const astMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
+  const astMesh = new THREE.InstancedMesh(astGeo, astMat, astCount);
+  
+  const dummy = new THREE.Object3D();
   const colorA = new THREE.Color(0x888888); 
   const colorB = new THREE.Color(0x443322); 
 
   for(let i=0; i<astCount; i++) {
-      // Scatter from just outside the Sun to way past Neptune
-      let r = 15 + Math.pow(Math.random(), 1.5) * 280; 
-      
+      let r = 15 + Math.pow(Math.random(), 1.2) * 200; 
       let theta = Math.random() * Math.PI * 2;
+      let y = (Math.random() - 0.5) * (6 + (r * 0.08)); 
       
-      // Massive vertical scatter to make it a true 3D cloud, proportional to distance
-      let yScatter = 8 + (r * 0.1); 
-      let y = (Math.random() - 0.5) * yScatter * 2; 
+      dummy.position.set(r * Math.cos(theta), y, r * Math.sin(theta));
+      dummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
       
-      astPos[i*3] = r * Math.cos(theta);
-      astPos[i*3+1] = y;
-      astPos[i*3+2] = r * Math.sin(theta);
-
-      // Mix colors
+      let s = 0.5 + Math.random() * 1.5;
+      dummy.scale.set(s, s + Math.random()*0.5, s + Math.random()*0.5); 
+      dummy.updateMatrix();
+      astMesh.setMatrixAt(i, dummy.matrix);
+      
       let mixedColor = colorA.clone().lerp(colorB, Math.random());
-      astColor[i*3] = mixedColor.r;
-      astColor[i*3+1] = mixedColor.g;
-      astColor[i*3+2] = mixedColor.b;
+      astMesh.setColorAt(i, mixedColor);
   }
   
-  astGeo.setAttribute('position', new THREE.BufferAttribute(astPos, 3));
-  astGeo.setAttribute('color', new THREE.BufferAttribute(astColor, 3));
-
-  // Circular texture for points
-  const cCv = document.createElement('canvas'); cCv.width = 16; cCv.height = 16;
-  const cCtx = cCv.getContext('2d');
-  cCtx.beginPath(); cCtx.arc(8,8,8,0,Math.PI*2); cCtx.fillStyle='#fff'; cCtx.fill();
-  const cTx = new THREE.CanvasTexture(cCv);
-
-  const astMat = new THREE.PointsMaterial({
-      size: 0.15, 
-      transparent: true, 
-      opacity: 0.8, 
-      vertexColors: true,
-      map: cTx,
-      alphaTest: 0.1,
-      depthWrite: false, // Crucial fix for blocky occlusion
-      sizeAttenuation: true
-  });
-  
-  const astBelt = new THREE.Points(astGeo, astMat);
-  macroSolarGroup.add(astBelt);
-  window.asteroidBelt = astBelt;
-
-  const moonOrbit = new THREE.Group();
-  const localMoon = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), new THREE.MeshStandardMaterial({map: getTx('moonmap1k.jpg'), roughness: 1.0}));
-  localMoon.position.set(3.5, 0.2, 0); localMoon.userData = { id: 'moon' }; interactableOrbitals.push(localMoon); moonOrbit.add(localMoon);
-  const mLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, 3.5, 3.5, 0, 2 * Math.PI, false, 0).getPoints(100)), new THREE.LineBasicMaterial({color: 0xfbbf24, transparent: true, opacity: 0.2}));
-  mLine.rotation.x = Math.PI / 2; moonOrbit.add(mLine); orbitGroup.add(moonOrbit); 
+  astMesh.instanceMatrix.needsUpdate = true;
+  if(astMesh.instanceColor) astMesh.instanceColor.needsUpdate = true;
+  macroSolarGroup.add(astMesh);
+  window.asteroidBelt = astMesh;
 
   function ll2v(lat,lng,r){
     var phi=(90-lat)*Math.PI/180, theta=(lng+180)*Math.PI/180;
@@ -778,8 +821,7 @@ resizeObserver.observe(document.getElementById('globe-area'));
     PADS.forEach(function(pad){
       if(pad.drawn) return;
       var pos=ll2v(pad.lat,pad.lng,1.012);
-      var mat=new THREE.MeshBasicMaterial({color:new THREE.Color(pad.color),transparent:true,opacity:0.6,side:THREE.DoubleSide});
-      var ring=new THREE.Mesh(new THREE.RingGeometry(0.012,0.016,18),mat);
+      var ring=new THREE.Mesh(new THREE.RingGeometry(0.012,0.016,18), new THREE.MeshBasicMaterial({color:new THREE.Color(pad.color),transparent:true,opacity:0.6,side:THREE.DoubleSide}));
       ring.position.copy(pos); ring.lookAt(pos.clone().multiplyScalar(2)); padGroup.add(ring);
       
       var hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
@@ -819,21 +861,16 @@ resizeObserver.observe(document.getElementById('globe-area'));
     { id: 'jwst', isStaticDeepSpace: true, mesh: makePointer('#FBBF24', 'jwst') }
   ];
 
-  // 1. LEO - STARLINK SWARMS
+  // LEO SWARMS
   const slGeo = new THREE.BufferGeometry(); const slPos = [];
-  for(let c=0; c<60; c++) {
-      let r = 1.08 + Math.random() * 0.05; let inc = Math.random() * Math.PI; let pTheta = Math.random() * Math.PI * 2;
-      let chainLen = 30 + Math.random()*40;
-      for(let i=0; i<chainLen; i++) {
-          let theta = pTheta + i*0.01; 
-          slPos.push(r*Math.cos(theta), r*Math.sin(theta)*Math.sin(inc), r*Math.sin(theta)*Math.cos(inc));
-      }
+  for(let c=0; c<60; c++) { let r = 1.08 + Math.random() * 0.05; let inc = Math.random() * Math.PI; let pTheta = Math.random() * Math.PI * 2;
+      for(let i=0; i<30; i++) { let theta = pTheta + i*0.01; slPos.push(r*Math.cos(theta), r*Math.sin(theta)*Math.sin(inc), r*Math.sin(theta)*Math.cos(inc)); }
   }
   slGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slPos), 3));
   leoGroup.add(new THREE.Points(slGeo, new THREE.PointsMaterial({color: 0x4ADE80, size: 0.0025, transparent: true, opacity: 0.6, depthWrite: false})));
   orbitGroup.add(leoGroup);
 
-  // 2. MEO - GPS / GNSS
+  // MEO SWARMS
   const meoGeo = new THREE.BufferGeometry(); const meoPos = [];
   for(let i=0; i<400; i++) {
       let r = 2.5 + Math.random() * 1.5; let inc = Math.random() * Math.PI; let theta = Math.random() * Math.PI * 2;
@@ -843,7 +880,7 @@ resizeObserver.observe(document.getElementById('globe-area'));
   meoGroup.add(new THREE.Points(meoGeo, new THREE.PointsMaterial({color: 0x818CF8, size: 0.006, transparent: true, opacity: 0.8, depthWrite: false})));
   orbitGroup.add(meoGroup);
 
-  // 3. GEO - TELECOM / WEATHER
+  // GEO SWARMS
   const geGeo = new THREE.BufferGeometry(); const gePos = [];
   for(let i=0; i<600; i++) {
       let r = 6.6 + (Math.random()*0.1 - 0.05); let theta = Math.random() * Math.PI * 2; let yOffset = (Math.random() * 0.1) - 0.05;
@@ -861,7 +898,6 @@ resizeObserver.observe(document.getElementById('globe-area'));
       if(child.geometry) child.geometry.dispose(); if(child.material) child.material.dispose();
     }
     let r = ROCKETS.find(r => r.id === rocketId); if(!r) return;
-    
     let agencyPads = PADS.filter(p => p.color === AGENCY_COLORS[r.agency] || (r.agency==='ULA' && p.color==='#818CF8')); 
     if(agencyPads.length === 0) agencyPads = [PADS[0]];
 
@@ -872,22 +908,13 @@ resizeObserver.observe(document.getElementById('globe-area'));
       const midPos = startPos.clone().lerp(endPos, 0.5).normalize().multiplyScalar(altTarget * 1.05);
       const curvePoints = new THREE.QuadraticBezierCurve3(startPos, midPos, endPos).getPoints(100);
       persistentLinesGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curvePoints), new THREE.LineBasicMaterial({ color: r.accent, transparent: true, opacity: 0.65 })));
-      const ring = new THREE.Mesh(new THREE.RingGeometry(0.015, 0.02, 16), new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.8, side: THREE.DoubleSide}));
-      ring.position.copy(endPos); ring.lookAt(0,0,0); persistentLinesGroup.add(ring);
-      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.005, 8, 8), new THREE.MeshBasicMaterial({color: r.accent, transparent: true, opacity: 0.9}));
-      dot.position.copy(endPos); persistentLinesGroup.add(dot);
     });
   };
 
   let activeLaunches = []; 
   
   window.triggerLaunch = function(lat, lng, hexColor, destination, missionName, vehicleName, agencyName, isLive = false) {
-    const startPos = ll2v(lat, lng, 1.012);
-    let altTarget = 1.15; let az = 90; 
-    if (destination === 'GTO' || destination === 'GEO') altTarget = 1.6;
-    if (destination === 'Moon' || destination === 'Deep Space') altTarget = 2.5;
-    if (destination === 'SSO' || destination === 'Polar') { altTarget = 1.2; az = 180; }
-
+    const startPos = ll2v(lat, lng, 1.012); let altTarget = 1.15; let az = 90; 
     const endPos = ll2v(lat + (az === 180 ? -35 : 15) + (Math.random() * 5 - 2.5), lng + (az === 90 ? 45 : 5) + (Math.random() * 5 - 2.5), altTarget); 
     const midPos = startPos.clone().lerp(endPos, 0.5).normalize().multiplyScalar(altTarget * 1.05);
     const curve = new THREE.QuadraticBezierCurve3(startPos, midPos, endPos);
@@ -895,31 +922,13 @@ resizeObserver.observe(document.getElementById('globe-area'));
     const marker = new THREE.Group();
     const launchHitbox = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({visible: false}));
     marker.add(launchHitbox);
-
-    if(isLive) {
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.02, 8), new THREE.MeshBasicMaterial({color: 0xffffff}));
-        const nose = new THREE.Mesh(new THREE.ConeGeometry(0.003, 0.006, 8), new THREE.MeshBasicMaterial({color: hexColor}));
-        nose.position.y = 0.013;
-        const flame = new THREE.Mesh(new THREE.ConeGeometry(0.002, 0.01, 8), new THREE.MeshBasicMaterial({color: 0xf97316}));
-        flame.position.y = -0.015; flame.rotation.x = Math.PI;
-        marker.add(body, nose, flame); marker.rotateX(Math.PI / 2);
-    } else {
-        marker.add(new THREE.Mesh(new THREE.SphereGeometry(0.01, 8, 8), new THREE.MeshBasicMaterial({color: hexColor}))); 
-    }
+    marker.add(new THREE.Mesh(new THREE.SphereGeometry(0.01, 8, 8), new THREE.MeshBasicMaterial({color: hexColor}))); 
     globeMain.add(marker);
-
     const trail = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(150)), new THREE.LineBasicMaterial({color: hexColor, transparent: true, opacity: isLive ? 1.0 : 0.85}));
     trail.geometry.setDrawRange(0, 0); globeMain.add(trail);
 
     activeLaunches.push({ id: Math.random().toString(), t: 0, speed: isLive ? 0.0005 : 0.0010, curve, marker, trail, name: missionName, vehicle: vehicleName, agency: agencyName, color: hexColor, isLive });
   };
-
-  window.triggerLiveLaunchSimulation = function(launch) {
-      const now = Date.now();
-      if ((launch.t - now) > 3600000 || (launch.t - now) < -300000) { launch.simActive = false; return; }
-      if(viewMode === 0) window.triggerLaunch(launch.lat, launch.lng, AGENCY_COLORS[launch.agency] || '#EF4444', launch.dest, launch.name, launch.vehicle, launch.agency, true);
-      setTimeout(() => window.triggerLiveLaunchSimulation(launch), 15000); 
-  }
 
   window.processLaunchQueue = function() {
     if (historicalLaunches.length === 0) return;
@@ -942,39 +951,28 @@ resizeObserver.observe(document.getElementById('globe-area'));
   (function animate(){
     requestAnimationFrame(animate);
 
-    // TIME DILATION
     let targetTimeScale = (hoveredObject && !drag) ? 0.05 : 1.0;
     currentTimeScale += (targetTimeScale - currentTimeScale) * 0.1;
     
     if (isSolarSystem && trackedPlanet) {
         let wp = new THREE.Vector3();
         trackedPlanet.getWorldPosition(wp);
-        targetCamLook.lerp(wp, 0.1);
-        targetCamPos.lerp(wp.clone().add(trackingOffset), 0.1);
+        targetCamLook.lerp(wp, 0.1); targetCamPos.lerp(wp.clone().add(trackingOffset), 0.1);
     }
     
-    camera.position.lerp(targetCamPos, 0.05); 
-    currentCamLook.lerp(targetCamLook, 0.05); 
-    camera.lookAt(currentCamLook);
+    camera.position.lerp(targetCamPos, 0.05); currentCamLook.lerp(targetCamLook, 0.05); camera.lookAt(currentCamLook);
 
     if(!drag){ 
-        if(!isSolarSystem) {
-            globeMain.rotation.y += 0.0005 * currentTimeScale; 
-        } else if (!trackedPlanet) {
-            macroSolarGroup.rotation.y += 0.0005 * currentTimeScale;
-        }
+        if(!isSolarSystem) { globeMain.rotation.y += 0.0005 * currentTimeScale; } 
+        else if (!trackedPlanet) { macroSolarGroup.rotation.y += 0.0005 * currentTimeScale; }
     }
     
     const now = new Date();
-    moonOrbit.rotation.y += 0.002 * currentTimeScale;
-    
-    // Rotate Swarms dynamically
     leoGroup.rotation.y += 0.001 * currentTimeScale; leoGroup.rotation.x += 0.0005 * currentTimeScale;
     meoGroup.rotation.y += 0.0005 * currentTimeScale; meoGroup.rotation.z += 0.0002 * currentTimeScale;
     geoGroup.rotation.y += 0.0002 * currentTimeScale;
-
+    
     if(window.backgroundPlanets) { window.backgroundPlanets.forEach(p => { p.group.rotation.y += p.speed * currentTimeScale; }); }
-    if(window.asteroidBelt) window.asteroidBelt.rotation.y += 0.0003 * currentTimeScale;
 
     activeStations.forEach(st => {
       if (st.isStaticDeepSpace) return;
@@ -1031,7 +1029,6 @@ resizeObserver.observe(document.getElementById('globe-area'));
             const padHits = raycaster.intersectObjects(padGroup.children.filter(c => c.userData.isPad));
             if (padHits.length > 0) {
                 hoveredObject = {type: 'pad', data: padHits[0].object.userData}; 
-                if(hoveredObject.data.ring) hoveredObject.data.ring.scale.lerp(new THREE.Vector3(1.5, 1.5, 1.5), 0.3);
             }
         }
       } else {
@@ -1115,9 +1112,6 @@ resizeObserver.observe(document.getElementById('globe-area'));
         let cmdPanel = document.getElementById('panel-command');
         if(cmdPanel.classList.contains('minimized')) toggleMinimize('panel-command');
         setCmdTab('intel'); render();
-        
-        const card = document.getElementById('vehicle-card-wrapper');
-        if(card) { card.style.setProperty('--accent-50', matchedRocket.accent + '80'); card.style.animation = 'none'; setTimeout(() => card.style.animation = 'highlight 0.5s ease', 10); }
       }
     } else {
       const interacts = isSolarSystem ? interactableOrbitals.filter(o => o.parent.parent === macroSolarGroup) : interactableOrbitals.filter(o => o.parent.parent !== macroSolarGroup);
@@ -1128,16 +1122,10 @@ resizeObserver.observe(document.getElementById('globe-area'));
             
             if(isSolarSystem) {
                 if (obj.userData.id === 'earth') {
-                    isSolarSystem = false;
-                    globeMain.visible = true;
-                    macroSolarGroup.visible = false;
-                    targetCamPos.set(0, 2.0, 6.0);
-                    targetCamLook.set(0, hudVisible ? 0 : -0.5, 0);
-                    trackedPlanet = null;
+                    isSolarSystem = false; globeMain.visible = true; macroSolarGroup.visible = false;
+                    targetCamPos.set(0, 2.0, 6.0); targetCamLook.set(0, hudVisible ? 0 : -0.5, 0); trackedPlanet = null;
                 } else if (obj.userData.id === 'sun') {
-                    showTempWarning();
-                    trackedPlanet = obj;
-                    trackingOffset = new THREE.Vector3(0, 5, 40);
+                    showTempWarning(); trackedPlanet = obj; trackingOffset = new THREE.Vector3(0, 5, 40);
                 } else {
                     trackedPlanet = obj;
                     let rad = obj.geometry.parameters.radius || (obj.children[0] && obj.children[0].geometry.parameters.radius) || 2;
@@ -1151,12 +1139,6 @@ resizeObserver.observe(document.getElementById('globe-area'));
             let cmdPanel = document.getElementById('panel-command');
             if(cmdPanel.classList.contains('minimized')) toggleMinimize('panel-command');
             setCmdTab('intel'); render();
-            
-            const targetBtn = document.getElementById('rocket-list').querySelector('.active');
-            if(targetBtn) targetBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            const card = document.getElementById('vehicle-card-wrapper');
-            if(card) { let sColor = SATELLITES.find(s=>s.id === state.selectedId)?.color || '#fff'; card.style.setProperty('--accent-50', sColor + '80'); card.style.animation = 'none'; setTimeout(() => card.style.animation = 'highlight 0.5s ease', 10); }
          }
       }
     }
@@ -1173,23 +1155,17 @@ resizeObserver.observe(document.getElementById('globe-area'));
           dist += e.deltaY * 0.006;
           
           if(viewMode === 1 && dist > 15) {
-              isSolarSystem = true;
-              globeMain.visible = false;
-              macroSolarGroup.visible = true;
-              targetCamPos.set(1000, 60, 150);
-              targetCamLook.set(1000, 0, 0);
-              trackedPlanet = null;
+              isSolarSystem = true; globeMain.visible = false; macroSolarGroup.visible = true;
+              targetCamPos.set(1000, 60, 150); targetCamLook.set(1000, 0, 0); trackedPlanet = null;
               return;
           }
           
           dist = Math.max(1.5, Math.min(15, dist));
       }
       
-      dir.setLength(dist); 
-      targetCamPos.copy(targetCamLook).add(dir);
+      dir.setLength(dist); targetCamPos.copy(targetCamLook).add(dir);
   },{passive:true});
 })();
-
 
 function buildAgencyFilters() {
   const af = document.getElementById('agency-filters'); af.innerHTML = '';
@@ -1252,7 +1228,7 @@ function buildRocketList(){
       const filteredSats = state.agency === 'All' ? SATELLITES : SATELLITES.filter(s => s.agency.includes(state.agency) || s.class === matchStr || s.type.includes(matchStr.split(' ')[0]) || (state.agency==='Relic' && s.id==='vanguard'));
       
       let finalSats = filteredSats;
-      if (viewMode === 1 && state.agency === 'All' && !isSolarSystem) finalSats = filteredSats.filter(s => !s.type.includes('Star') && !s.type.includes('Planet'));
+      if (viewMode === 1 && state.agency === 'All' && !isSolarSystem) finalSats = filteredSats.filter(s => !s.type.includes('Star') && !s.type.includes('Planet') && s.agency !== 'Natural');
 
       finalSats.forEach(function(s){
         var isActive = (state.selectionType === 'satellite' && s.id === state.selectedId);
@@ -1456,7 +1432,6 @@ function render(){
   buildLiveCommand();
 }
 
-// Initial Call
 render();
 
 setInterval(function(){
